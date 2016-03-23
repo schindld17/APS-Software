@@ -214,3 +214,6 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
+*.mk
+Debug/subdir_rules.mk
+*.mk
