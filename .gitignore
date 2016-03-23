@@ -217,3 +217,5 @@ pip-log.txt
 *.mk
 Debug/subdir_rules.mk
 *.mk
+
+Debug/
