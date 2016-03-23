@@ -1,0 +1,1 @@
+"./main.obj" "../28377S_FLASH_lnk.cmd" -l"libc.a" 
