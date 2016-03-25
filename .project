@@ -30,6 +30,46 @@
 			<type>1</type>
 			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_common/source/F2837xS_Adc.c</locationURI>
 		</link>
+		<link>
+			<name>F2837xS_CodeStartBranch.asm</name>
+			<type>1</type>
+			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_common/source/F2837xS_CodeStartBranch.asm</locationURI>
+		</link>
+		<link>
+			<name>F2837xS_DefaultISR.c</name>
+			<type>1</type>
+			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_common/source/F2837xS_DefaultISR.c</locationURI>
+		</link>
+		<link>
+			<name>F2837xS_GlobalVariableDefs.c</name>
+			<type>1</type>
+			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_headers/source/F2837xS_GlobalVariableDefs.c</locationURI>
+		</link>
+		<link>
+			<name>F2837xS_Gpio.c</name>
+			<type>1</type>
+			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_common/source/F2837xS_Gpio.c</locationURI>
+		</link>
+		<link>
+			<name>F2837xS_Headers_nonBIOS.cmd</name>
+			<type>1</type>
+			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_headers/cmd/F2837xS_Headers_nonBIOS.cmd</locationURI>
+		</link>
+		<link>
+			<name>F2837xS_PieCtrl.c</name>
+			<type>1</type>
+			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_common/source/F2837xS_PieCtrl.c</locationURI>
+		</link>
+		<link>
+			<name>F2837xS_PieVect.c</name>
+			<type>1</type>
+			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_common/source/F2837xS_PieVect.c</locationURI>
+		</link>
+		<link>
+			<name>F2837xS_usDelay.asm</name>
+			<type>1</type>
+			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_common/source/F2837xS_usDelay.asm</locationURI>
+		</link>
 	</linkedResources>
 	<variableList>
 		<variable>

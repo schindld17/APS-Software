@@ -14,8 +14,11 @@
 //	Release Date:
 //########################################################################################################################
 
+
+#include "F2837xS_device.h"
+#include "APS_GlobalPrototypes.h"
+
 #pragma CODE_SECTION(InitFlash, "ramfuncs");
-#include <F2837xS_flash.h>
 
 //*************************************************************************************************************************
 //NAME: initSysCtrl
@@ -39,7 +42,7 @@ void InitSysCtrl(void)
 // Copy time critical code and Flash setup code to RAM. This includes function InitFlash()
 // The RamfuncsRunstart, RamfuncsLoadStart, and RamfuncsLoadSize are created by the linker.
 // These can be found in the device .cmd file.
-	memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize)
+	memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
 
 // Call Flash Initilization to setup flash waitstates. --> This function must reside in RAM.
 	InitFlash(0);
@@ -50,14 +53,14 @@ GPIO_EnableUnbondedIOPullups();
 
 #ifndef _TEST
 	//USB is being used.
-	initSysPLL(1);
+	initSysPLL(0);
 #endif
 
 	//USB is not being used.
 	initSysPLL(0);
 
 	//Initialize peripheral clocks
-	intiPeripheralClocks();
+	initPeripheralClocks();
 
 }
 
@@ -87,28 +90,27 @@ void WatchDogDisable(void)
 //
 //AUTHOR: Dylan Schindler
 //*************************************************************************************************************************
-void InitFlash(int bank = 0)
+void InitFlash(int bank)
 {
 
+	volatile struct FLASH_CTRL_REGS *Flash;
+	volatile struct FLASH_ECC_REGS *FlashECC;
+
 	EALLOW;
-
 	//Programmatically choosing which Flash bank will be used during initilization.
-	struct FLASH_CTRL_REGS Flash;
-	struct FLASH_ECC_REGS FlashECC;
-
 	if (bank == 1)
 	{
-		Flash = Flash1CtrlRegs;
-		FlashECC = Flash1EccRegs
+		Flash = &Flash1CtrlRegs;
+		FlashECC = &Flash1EccRegs;
 	}//END IF
 	else
 	{
-		Flash = Flash0CtrlRegs;
-		FlashECC = Flash0EccRegs;
+		Flash = &Flash0CtrlRegs;
+		FlashECC = &Flash0EccRegs;
 	}//END ELSE
 
 	//Set Flash Bank power up delay.
-		Flash.FBAC.bit.VREADST=0x14;
+	Flash0CtrlRegs.FBAC.bit.VREADST=0x14;
 
 	//On reset Flash bank and pump are in sleep mode.
 	//A Flash access will power up the bank and pump automatically.
@@ -116,22 +118,22 @@ void InitFlash(int bank = 0)
 	// if there is no further access to flash.
 
 	//Power up the Flash Bank and Pump and set fall back mode as active.
-	Flash.FPAC1.bit.PMPPWR = 0x1;
-	Flash.FBFALLBACK.bit.BNKPWR0 = 0x3;
+	(*Flash).FPAC1.bit.PMPPWR = 0x1;
+	(*Flash).FBFALLBACK.bit.BNKPWR0 = 0x3;
 
 	//Disable data Cache and prefecth mechanism to change flash wait state.
-	Flash.FRD_INTF_CTRL.bit.DATA_CACHE_EN = 0;
-	Flash.FRD_INTF_CTRL.bit.PREFETCH_EN = 0;
+	(*Flash).FRD_INTF_CTRL.bit.DATA_CACHE_EN = 0;
+	(*Flash).FRD_INTF_CTRL.bit.PREFETCH_EN = 0;
 
 	//Set Flash wait state according to 200MHz clock frequency.
-	Flash.FRDCNTL.bit.RWAIT = 0x3;
+	(*Flash).FRDCNTL.bit.RWAIT = 0x3;
 
 	//If Flash bank 1 is being initialized then turn on data cache and prefetch to improve performance
 	//Flash bank 1 will be used to store log files
 	if(bank == 1)
 	{
-		Flash.FRD_INTF_CTRL.bit.DATA_CACHE_EN = 1;
-		Flash.FRD_INTF_CTRL.bit.PREFETCH_EN = 1;
+		(*Flash).FRD_INTF_CTRL.bit.DATA_CACHE_EN = 1;
+		(*Flash).FRD_INTF_CTRL.bit.PREFETCH_EN = 1;
 	}//END IF
 
 	//If system is not in test mode then Flash 0 will also be used for log files so data cache and prefetch should
@@ -139,19 +141,19 @@ void InitFlash(int bank = 0)
 #ifndef _TEST
 	if(bank == 0)
 	{
-		Flash.FRD_INTF_CTRL.bit.DATA_CACHE_EN = 1;
-		Flash.FRD_INTF_CTRL.bit.PREFETCH_EN = 1;
+		(*Flash).FRD_INTF_CTRL.bit.DATA_CACHE_EN = 1;
+		(*Flash).FRD_INTF_CTRL.bit.PREFETCH_EN = 1;
 	}//END IF
 #endif
-	}//END FUNCTION
+
 
 	//Flush pipline to ensure all writes to registers has been completed.
-	__asm(" RPT #7 || NOP" )
+	__asm(" RPT #7 || NOP" );
 
 	//Protect write-protected registers.
 	EDIS;
 
-}
+}//END FUNCTION
 //*************************************************************************************************************************
 //NAME: initSysPLL
 //
@@ -161,13 +163,13 @@ void InitFlash(int bank = 0)
 //
 //AUTHOR: Dylan Schindler
 //*************************************************************************************************************************
-void initSysPLL(bool_t usbActive = 0)
+void initSysPLL(int usbActive)
 {
 	//Open write protected registres
 	EALLOW;
 
 	//Check to see if USB is being used, meaning the auxilarly clock has to be set up to use an external crystal oscillator.
-	if(usbActive)
+	if(usbActive == 1)
 	{
 		//////////////////First set up system PLL
 
@@ -187,7 +189,7 @@ void initSysPLL(bool_t usbActive = 0)
 
 		//Ensure that the External Oscillator is turned on.
 		// Default state is turned on.
-		ClkCfgRegs.CLKSRCCTL1.bit.XTALOFF = 0x0;
+		ClkCfgRegs.CLKSRCCTL1.bit.XTALOFF = 0;
 
 		//Set clock source to External Oscillator.
 		ClkCfgRegs.CLKSRCCTL1.bit.OSCCLKSRCSEL = 0x0;
@@ -205,7 +207,7 @@ void initSysPLL(bool_t usbActive = 0)
 			//Loop through procedure twice to ensure registers have been set.
 			for(loopCount = 0; loopCount < 2; loopCount++)
 			{
-				Uint32 temp_pllMult = ClkCfgRegs.SYSPLLMULT;
+				Uint32 temp_pllMult = ClkCfgRegs.SYSPLLMULT.all;
 
 				//Set the integer multiplier to 9 (0x9) and fractional to .75 (0x3).
 				//This gives a PLL Raw Clock of 390 MHz within acceptable range. The CPU frequency will be 195 MHz to be
@@ -214,7 +216,7 @@ void initSysPLL(bool_t usbActive = 0)
 
 				//Wait for SYSPLL to lock.
 				//This will take 16 microsec plus 1024 OSCCLK cycles.
-				while(ClkCfgRegs.SYSPLLSTS.bit.LOCKS != 0x1)
+				while(ClkCfgRegs.SYSPLLSTS.bit.LOCKS != 1)
 				{
 					//Do nothing.
 				}//END WHILE
@@ -243,15 +245,15 @@ void initSysPLL(bool_t usbActive = 0)
 		//Check to see if auxiliary PLL multipliers have been set, if not then set them.
 		if(ClkCfgRegs.AUXPLLMULT.bit.IMULT != 0x9 || ClkCfgRegs.AUXPLLMULT.bit.FMULT != 0x3)
 		{
-			Uint32 temp_auxPllMult = ClkCfgRegs.AUXPLLMULT;
+			Uint32 temp_auxPllMult = ClkCfgRegs.AUXPLLMULT.all;
 
 			//Set the integer multipler to 1 (0x1) and fractional to .5 (0x2).
 			//This gives an auxiliary PLL Raw Clock of 60 MHz.
-			ClkCfgRegs.AUXPLLMULT = (temp_auxPllMult | 0x201);
+			ClkCfgRegs.AUXPLLMULT.all = (temp_auxPllMult | (0x201));
 
 			//Wait for AUXPLL to lock.
 			//This will take 16 microsec plus 1024 AUXOSCCLK cycles.
-			while(ClkCfgRegs.AUXPLLSTS.bit.LOCKS != 0x1)
+			while(ClkCfgRegs.AUXPLLSTS.bit.LOCKS != 1)
 			{
 				//Do nothing.
 			}//END WHILE
@@ -305,16 +307,18 @@ void initSysPLL(bool_t usbActive = 0)
 			//Loop through procedure twice to ensure registers have been set.
 			for(loopCount = 0; loopCount < 2; loopCount++)
 			{
-				Uint32 temp_pllMult = ClkCfgRegs.SYSPLLMULT;
+				Uint32 temp_pllMult = ClkCfgRegs.SYSPLLMULT.all;
 
 				//Set the integer multiplier to 38 (0x26) and fractional to .75 (0x3).
 				//This gives a PLL Raw Clock of 387.5 MHz within acceptable range. The CPU frequency will be 193.75 MHz to be
 				// within 3% of desired 200 MHz.
-				ClkCfgRegs.SYSPLLMULT.all = (temp_pllMult | 0x326 );
+				ClkCfgRegs.SYSPLLMULT.bit.IMULT = 0x26;
+				ClkCfgRegs.SYSPLLMULT.bit.FMULT = 0x3;
+				//= (temp_pllMult | 0x326 );
 
 				//Wait for SYSPLL to lock.
 				//This will take 16 microsec plus 1024 OSCCLK cycles.
-				while(ClkCfgRegs.SYSPLLSTS.bit.LOCKS != 0x1)
+				while(ClkCfgRegs.SYSPLLSTS.bit.LOCKS != 1)
 				{
 					//Do nothing.
 				}
@@ -386,7 +390,6 @@ void initPeripheralClocks(void)
 	CpuSysRegs.PCLKCR2.all = 0;
 	CpuSysRegs.PCLKCR3.all = 0;
 	CpuSysRegs.PCLKCR4.all = 0;
-	CpuSysRegs.PCLKCR5.all = 0;
 	CpuSysRegs.PCLKCR6.all = 0;
 	CpuSysRegs.PCLKCR7.all = 0;
 	CpuSysRegs.PCLKCR8.all = 0;
@@ -394,7 +397,6 @@ void initPeripheralClocks(void)
 	CpuSysRegs.PCLKCR10.all = 0;
 	CpuSysRegs.PCLKCR12.all = 0;
 	CpuSysRegs.PCLKCR13.all = 0;
-	CpuSysRegs.PCLKCR15.all = 0;
 	CpuSysRegs.PCLKCR16.all = 0;
 
 	//Close write protected registers.

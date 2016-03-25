@@ -14,10 +14,25 @@
 // Author: Dylan Schindler
 // Release Date:
 //###########################################################################
+#include <stdint.h>
+#include <stdbool.h>
+#include <stdio.h>
 #include "F2837xS_device.h"
+#include "APS_GlobalPrototypes.h"
+
+
+void InitSysCtrl(void);
 
 int main(void)
 {
+	int loopCount = 0;
+    // If running from flash copy RAM only functions to RAM
+#ifdef _FLASH
+    memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
+#endif
+
+    InitSysCtrl();
+
 	//Clear all interrupts and initalize PIE vector table.
 	//Disable CPU interrupts.
 	DINT;
@@ -44,8 +59,8 @@ int main(void)
     EALLOW;
     GpioCtrlRegs.GPADIR.bit.GPIO12 = 1;
     GpioCtrlRegs.GPADIR.bit.GPIO13 = 1;
-    GpioDataRegs.GPADAT.bit.GPIO12 = 1;
-    GpioDataRegs.GPADAT.bit.GPIO13 = 1;
+    GpioDataRegs.GPACLEAR.bit.GPIO12 = 1;
+    GpioDataRegs.GPACLEAR.bit.GPIO13 = 1;
     EDIS;
 
     // Enable global Interrupts and higher priority real-time debug events:
@@ -53,12 +68,13 @@ int main(void)
     ERTM;   // Enable Global realtime interrupt DBGM
 
     //Toggle LEDS
-    for(;;)
+    EALLOW;
+    for(loopCount = 0;loopCount < 100; loopCount++)
     {
         GpioDataRegs.GPATOGGLE.bit.GPIO12 = 1;
+        DELAY_US(50000);
         GpioDataRegs.GPATOGGLE.bit.GPIO13 = 1;
         DELAY_US(50000);
     }
-	
-	return 0;
+
 }
