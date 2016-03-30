@@ -28,7 +28,7 @@ extern Uint16 RamfuncsRunSize;
 
 //System Initilization Function Prototypes
 void WatchDogDisable(void);
-void InitFlash(int);
+void InitFlashAPS(int bank);
 void initSysPLL(int);
 void initPeripheralClocks(void);
 void GPIO_EnableUnbondedIOPullups(void);

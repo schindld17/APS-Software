@@ -25,7 +25,6 @@ void InitSysCtrl(void);
 
 int main(void)
 {
-	int loopCount = 0;
     // If running from flash copy RAM only functions to RAM
 #ifdef _FLASH
     memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
@@ -55,26 +54,12 @@ int main(void)
     // This function is found in F2806x_PieVect.c.
        InitPieVectTable();
 
-    //Initialize GPIOs for the LEDs and turn them off
-    EALLOW;
-    GpioCtrlRegs.GPADIR.bit.GPIO12 = 1;
-    GpioCtrlRegs.GPADIR.bit.GPIO13 = 1;
-    GpioDataRegs.GPACLEAR.bit.GPIO12 = 1;
-    GpioDataRegs.GPACLEAR.bit.GPIO13 = 1;
-    EDIS;
-
     // Enable global Interrupts and higher priority real-time debug events:
     EINT;   // Enable Global interrupt INTM
     ERTM;   // Enable Global realtime interrupt DBGM
 
-    //Toggle LEDS
-    EALLOW;
-    for(loopCount = 0;loopCount < 100; loopCount++)
-    {
-        GpioDataRegs.GPATOGGLE.bit.GPIO12 = 1;
-        DELAY_US(50000);
-        GpioDataRegs.GPATOGGLE.bit.GPIO13 = 1;
-        DELAY_US(50000);
-    }
+#ifdef _BASICTEST
+    basicFuctionalityTest();
+#endif
 
 }

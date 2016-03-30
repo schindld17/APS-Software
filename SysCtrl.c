@@ -5,7 +5,7 @@
 //
 //	TITLE: System Initialization Functions
 //
-//	DESCRIPTION:	Group of functions used to initlization the system to the
+//	DESCRIPTION:	Group of functions used to initlize the system to the
 //					the correct state.
 //
 //########################################################################################################################
@@ -17,6 +17,7 @@
 
 #include "F2837xS_device.h"
 #include "APS_GlobalPrototypes.h"
+#include "F2837xS_Examples.h"
 
 #pragma CODE_SECTION(InitFlash, "ramfuncs");
 
@@ -45,11 +46,34 @@ void InitSysCtrl(void)
 	memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
 
 // Call Flash Initilization to setup flash waitstates. --> This function must reside in RAM.
-	InitFlash(0);
-	InitFlash(1);
+	InitFlashAPS(0);
+	InitFlashAPS(1);
 #endif
 
-GPIO_EnableUnbondedIOPullups();
+    EALLOW;
+
+    //enable pull-ups on unbonded IOs as soon as possible to reduce power consumption.
+    GPIO_EnableUnbondedIOPullups();
+
+	CpuSysRegs.PCLKCR13.bit.ADC_A = 1;
+	CpuSysRegs.PCLKCR13.bit.ADC_B = 1;
+	CpuSysRegs.PCLKCR13.bit.ADC_C = 1;
+	CpuSysRegs.PCLKCR13.bit.ADC_D = 1;
+
+    //check if device is trimmed
+    if(*((Uint16 *)0x5D1B6) == 0x0000){
+        //device is not trimmed, apply static calibration values
+        AnalogSubsysRegs.ANAREFTRIMA.all = 31709;
+        AnalogSubsysRegs.ANAREFTRIMB.all = 31709;
+        AnalogSubsysRegs.ANAREFTRIMC.all = 31709;
+        AnalogSubsysRegs.ANAREFTRIMD.all = 31709;
+    }
+
+	CpuSysRegs.PCLKCR13.bit.ADC_A = 0;
+	CpuSysRegs.PCLKCR13.bit.ADC_B = 0;
+	CpuSysRegs.PCLKCR13.bit.ADC_C = 0;
+	CpuSysRegs.PCLKCR13.bit.ADC_D = 0;
+    EDIS;
 
 #ifndef _TEST
 	//USB is being used.
@@ -90,7 +114,7 @@ void WatchDogDisable(void)
 //
 //AUTHOR: Dylan Schindler
 //*************************************************************************************************************************
-void InitFlash(int bank)
+void InitFlashAPS(int bank)
 {
 
 	volatile struct FLASH_CTRL_REGS *Flash;
@@ -177,9 +201,9 @@ void initSysPLL(int usbActive)
 		//Settings to check include the clock source, the PLL Integer Multiplier, the PLL Fractional Multiplier.
 		// and the PLL Divider
 		if((ClkCfgRegs.CLKSRCCTL1.bit.OSCCLKSRCSEL == 0x1) &&
-			(ClkCfgRegs.SYSPLLMULT.bit.IMULT == 0x9) &&
-			(ClkCfgRegs.SYSPLLMULT.bit.FMULT == 0x3) &&
-			(ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV == 0x1))
+			(ClkCfgRegs.SYSPLLMULT.bit.IMULT == IMULT_9) &&
+			(ClkCfgRegs.SYSPLLMULT.bit.FMULT == FMULT_0pt75) &&
+			(ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV == PLLCLK_BY_2))
 		{
 			return;
 		}//END IF
@@ -197,10 +221,10 @@ void initSysPLL(int usbActive)
 		//Bypass the system PLL and set PLL divider to 1.
 		//This will minimize the increase in current drawn when enabling the PLL.
 		ClkCfgRegs.SYSPLLCTL1.bit.PLLCLKEN = 0x0;
-		ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV = 0x0;
+		ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV = PLLCLK_BY_1;
 
 		//Check to see if system PLL multipliers have been set, if not then set them.
-		if(ClkCfgRegs.SYSPLLMULT.bit.IMULT != 0x9 || ClkCfgRegs.SYSPLLMULT.bit.FMULT != 0x3)
+		if(ClkCfgRegs.SYSPLLMULT.bit.IMULT != IMULT_9 || ClkCfgRegs.SYSPLLMULT.bit.FMULT != FMULT_0pt75)
 		{
 			int loopCount = 0;
 
@@ -227,7 +251,7 @@ void initSysPLL(int usbActive)
 		ClkCfgRegs.SYSPLLCTL1.bit.PLLCLKEN = 0x1;
 
 		//Set final system clock divider to 2.
-		ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV = 0x1;
+		ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV = PLLCLK_BY_2;
 
 		//Small 100 cycle delay.
 		asm(" RPT #100 || NOP");
@@ -240,10 +264,10 @@ void initSysPLL(int usbActive)
 		//Bypass the aux. PLL and set PLL divider to 1.
 		//This will minimize the increase in current drawn when enabling the PLL.
 		ClkCfgRegs.AUXPLLCTL1.bit.PLLCLKEN = 0x0;
-		ClkCfgRegs.AUXCLKDIVSEL.bit.AUXPLLDIV= 0x0;
+		ClkCfgRegs.AUXCLKDIVSEL.bit.AUXPLLDIV= PLLCLK_BY_1;
 
 		//Check to see if auxiliary PLL multipliers have been set, if not then set them.
-		if(ClkCfgRegs.AUXPLLMULT.bit.IMULT != 0x9 || ClkCfgRegs.AUXPLLMULT.bit.FMULT != 0x3)
+		if(ClkCfgRegs.AUXPLLMULT.bit.IMULT != IMULT_1 || ClkCfgRegs.AUXPLLMULT.bit.FMULT != FMULT_0pt75)
 		{
 			Uint32 temp_auxPllMult = ClkCfgRegs.AUXPLLMULT.all;
 
@@ -263,7 +287,7 @@ void initSysPLL(int usbActive)
 		ClkCfgRegs.AUXPLLCTL1.bit.PLLCLKEN = 0x1;
 
 		//Set final aux. clock divider to 1.
-		ClkCfgRegs.AUXCLKDIVSEL.bit.AUXPLLDIV = 0x1;
+		ClkCfgRegs.AUXCLKDIVSEL.bit.AUXPLLDIV = PLLCLK_BY_1;
 
 		//Small 100 cycle delay.
 		asm(" RPT #100 || NOP");
@@ -277,9 +301,9 @@ void initSysPLL(int usbActive)
 		//Settings to check include the clock source, the PLL Integer Multiplier, the PLL Fractional Multiplier.
 		// and the PLL Divider
 		if((ClkCfgRegs.CLKSRCCTL1.bit.OSCCLKSRCSEL == 0x0) &&
-			(ClkCfgRegs.SYSPLLMULT.bit.IMULT == 0x26) &&
-			(ClkCfgRegs.SYSPLLMULT.bit.FMULT == 0x3) &&
-			(ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV == 0x1))
+			(ClkCfgRegs.SYSPLLMULT.bit.IMULT == IMULT_38) &&
+			(ClkCfgRegs.SYSPLLMULT.bit.FMULT == FMULT_0pt75) &&
+			(ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV == PLLCLK_BY_2))
 		{
 			return;
 		}//END IF
@@ -297,10 +321,10 @@ void initSysPLL(int usbActive)
 		//Bypass the system PLL and set PLL divider to 1.
 		//This will minimize the increase in current drawn when enabling the PLL.
 		ClkCfgRegs.SYSPLLCTL1.bit.PLLCLKEN = 0x0;
-		ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV = 0x0;
+		ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV = PLLCLK_BY_1;
 
 		//Check to see if PLL multipliers have been set, if not then set them.
-		if(ClkCfgRegs.SYSPLLMULT.bit.IMULT != 0x26 || ClkCfgRegs.SYSPLLMULT.bit.FMULT != 0x3)
+		if(ClkCfgRegs.SYSPLLMULT.bit.IMULT != IMULT_38 || ClkCfgRegs.SYSPLLMULT.bit.FMULT != FMULT_0pt75)
 		{
 			int loopCount = 0;
 
@@ -312,8 +336,8 @@ void initSysPLL(int usbActive)
 				//Set the integer multiplier to 38 (0x26) and fractional to .75 (0x3).
 				//This gives a PLL Raw Clock of 387.5 MHz within acceptable range. The CPU frequency will be 193.75 MHz to be
 				// within 3% of desired 200 MHz.
-				ClkCfgRegs.SYSPLLMULT.bit.IMULT = 0x26;
-				ClkCfgRegs.SYSPLLMULT.bit.FMULT = 0x3;
+				ClkCfgRegs.SYSPLLMULT.bit.IMULT = IMULT_38;
+				ClkCfgRegs.SYSPLLMULT.bit.FMULT = FMULT_0pt75;
 				//= (temp_pllMult | 0x326 );
 
 				//Wait for SYSPLL to lock.
@@ -329,7 +353,7 @@ void initSysPLL(int usbActive)
 		ClkCfgRegs.SYSPLLCTL1.bit.PLLCLKEN = 0x1;
 
 		//Set final system clock divider to 2.
-		ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV = 0x1;
+		ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV = PLLCLK_BY_2;
 
 		//Small 100 cycle delay.
 		asm(" RPT #100 || NOP");
