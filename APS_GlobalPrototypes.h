@@ -34,6 +34,5 @@ void initPeripheralClocks(void);
 void GPIO_EnableUnbondedIOPullups(void);
 
 
-
-
 #endif /* APS_GLOBALPROTOTYPES_H_ */
+

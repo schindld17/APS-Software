@@ -58,8 +58,12 @@ int main(void)
     EINT;   // Enable Global interrupt INTM
     ERTM;   // Enable Global realtime interrupt DBGM
 
+    ADCInit();
+
 #ifdef _BASICTEST
-    basicFuctionalityTest();
+    initsci();
+
+    sciTestwADC();
 #endif
 
 }

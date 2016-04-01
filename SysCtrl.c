@@ -50,11 +50,10 @@ void InitSysCtrl(void)
 	InitFlashAPS(1);
 #endif
 
-    EALLOW;
-
     //enable pull-ups on unbonded IOs as soon as possible to reduce power consumption.
     GPIO_EnableUnbondedIOPullups();
 
+    EALLOW;
 	CpuSysRegs.PCLKCR13.bit.ADC_A = 1;
 	CpuSysRegs.PCLKCR13.bit.ADC_B = 1;
 	CpuSysRegs.PCLKCR13.bit.ADC_C = 1;
@@ -134,7 +133,7 @@ void InitFlashAPS(int bank)
 	}//END ELSE
 
 	//Set Flash Bank power up delay.
-	Flash0CtrlRegs.FBAC.bit.VREADST=0x14;
+	(*Flash).FBAC.bit.VREADST=0x14;
 
 	//On reset Flash bank and pump are in sleep mode.
 	//A Flash access will power up the bank and pump automatically.
@@ -355,6 +354,9 @@ void initSysPLL(int usbActive)
 		//Set final system clock divider to 2.
 		ClkCfgRegs.SYSCLKDIVSEL.bit.PLLSYSCLKDIV = PLLCLK_BY_2;
 
+		//Set Low-Speed Peripheral Clock (LSPCLK) divider to 4 (~ 48.5 MHz)
+		ClkCfgRegs.LOSPCP.bit.LSPCLKDIV = 0x2;
+
 		//Small 100 cycle delay.
 		asm(" RPT #100 || NOP");
 
@@ -392,8 +394,8 @@ void initPeripheralClocks(void)
 
 	//Turn on USB/ turn off all other pins in PCLKCR11.
 	CpuSysRegs.PCLKCR11.bit.USB_A = 0x1;
-	CpuSysRegs.PCLKCR11.bit.McBSP_A = 0x1;
-	CpuSysRegs.PCLKCR11.bit.McBSP_B = 0x1;
+	CpuSysRegs.PCLKCR11.bit.McBSP_A = 0x0;
+	CpuSysRegs.PCLKCR11.bit.McBSP_B = 0x0;
 
 	//Turn on Comparator Modules 1,2,3,8 and 6/ Turn off all others.
 	CpuSysRegs.PCLKCR14.bit.CMPSS1 = 0x1;
@@ -416,7 +418,18 @@ void initPeripheralClocks(void)
 	CpuSysRegs.PCLKCR4.all = 0;
 	CpuSysRegs.PCLKCR6.all = 0;
 	CpuSysRegs.PCLKCR7.all = 0;
+#ifdef _TEST
+	CpuSysRegs.PCLKCR7.bit.SCI_A = 0x1;
+	CpuSysRegs.PCLKCR7.bit.SCI_B = 0x1;
+	CpuSysRegs.PCLKCR7.bit.SCI_C = 0x1;
+	CpuSysRegs.PCLKCR7.bit.SCI_D = 0x1;
+
+	CpuSysRegs.PCLKCR10.bit.CAN_A = 1;
+	CpuSysRegs.PCLKCR10.bit.CAN_B = 1;
+
+#else
 	CpuSysRegs.PCLKCR8.all = 0;
+#endif
 	CpuSysRegs.PCLKCR0.all = 0;
 	CpuSysRegs.PCLKCR10.all = 0;
 	CpuSysRegs.PCLKCR12.all = 0;

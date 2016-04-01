@@ -66,6 +66,11 @@
 			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_common/source/F2837xS_PieVect.c</locationURI>
 		</link>
 		<link>
+			<name>F2837xS_Sci.c</name>
+			<type>1</type>
+			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_common/source/F2837xS_Sci.c</locationURI>
+		</link>
+		<link>
 			<name>F2837xS_usDelay.asm</name>
 			<type>1</type>
 			<locationURI>INSTALLROOT_F2837x_VERSION/F2837xS_common/source/F2837xS_usDelay.asm</locationURI>
