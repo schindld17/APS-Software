@@ -25,6 +25,17 @@
 
 //###########################################################################
 
+
+//*************************************************************************************************************************
+//NAME: initPeripheralClocks
+//
+//DESC: Initialize all peripheral clocks to be used by the system
+//
+//DATE: 23 March 2016
+//
+//AUTHOR: Dylan Schindler
+//*************************************************************************************************************************
+
 void ADCInit(void)
 {
 	EALLOW;
@@ -68,14 +79,14 @@ void ADCInit(void)
 	//SOC0 will convert pin ADCINB2.
 	AdcbRegs.ADCSOC0CTL.bit.CHSEL = 0x2;
 
-	//SOC0 sample window is 3 SYSCLOCK cycles (~15ns).
-	AdcbRegs.ADCSOC0CTL.bit.ACQPS = 0x2;
+	//SOC0 sample window is 26 SYSCLOCK cycles (~ns).
+	AdcbRegs.ADCSOC0CTL.bit.ACQPS = 0x22;
 
-	//SOC0 will convert pin ADCINB1.
-	AdcbRegs.ADCSOC1CTL.bit.CHSEL = 0x1;
+	//SOC1 will convert pin ADCINB1.
+	//AdcbRegs.ADCSOC1CTL.bit.CHSEL = 0x1;
 
 	//SOC1 sample window is 3 SYSCLOCK cycles (~15ns).
-	AdcbRegs.ADCSOC1CTL.bit.ACQPS = 0x2;
+	//AdcbRegs.ADCSOC1CTL.bit.ACQPS = 0x2;
 
 #ifdef _TEST
 	//End of conversion on SOC0 will set INT1 flag.
@@ -91,6 +102,8 @@ void ADCInit(void)
 	EDIS;
 
 	/////////////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 

@@ -433,7 +433,6 @@ void initPeripheralClocks(void)
 	CpuSysRegs.PCLKCR0.all = 0;
 	CpuSysRegs.PCLKCR10.all = 0;
 	CpuSysRegs.PCLKCR12.all = 0;
-	CpuSysRegs.PCLKCR13.all = 0;
 	CpuSysRegs.PCLKCR16.all = 0;
 
 	//Close write protected registers.

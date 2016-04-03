@@ -189,7 +189,7 @@ void sciTest(void)
 int16_t sampleADC(void)
 {
 	int16_t temp;
-
+	EALLOW;
     //Force start of conversion on SOC0
 	AdcbRegs.ADCSOCFRC1.all = 0x03;
 
@@ -198,7 +198,8 @@ int16_t sampleADC(void)
     AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;        //Clear ADCINT1
 
     //Get temp sensor sample result from SOC0
-    temp = AdcbResultRegs.ADCRESULT1;
+    temp = AdcbResultRegs.ADCRESULT0;
+    EDIS;
 
     //Return the raw temperature because the devices don't have slope/offset values
     return(temp);
@@ -229,8 +230,9 @@ void sciTestwADC(void)
 
     adcSample = sampleADC();
 
-    for(count = 0; count < 100; count++)
+    for(;;)
     {
+    	adcSample = sampleADC();
         //while(!SciaRegs.SCICTL2.bit.TXRDY);
        // SciaRegs.SCITXBUF.all = count;
     printf("ADC Value = [%d]", adcSample);
@@ -238,6 +240,7 @@ void sciTestwADC(void)
     putchar(ucChar);
     ucChar = 13;
     putchar(ucChar);
+    DELAY_US(500000);
     }
     EDIS;
 
