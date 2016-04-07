@@ -58,12 +58,20 @@ int main(void)
     EINT;   // Enable Global interrupt INTM
     ERTM;   // Enable Global realtime interrupt DBGM
 
+    //Initialize GPIO pins
+    GPIOInit();
+
+    //Initialize ADC Module
     ADCInit();
+
+    //Initialize Comparator Module
+    CMPSSInit();
+    EPWMInit();
 
 #ifdef _BASICTEST
     initsci();
 
-    sciTestwADC();
+    sciTestwComp_GPIO(TWELVE_LOAD);
 #endif
 
 }

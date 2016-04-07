@@ -27,14 +27,6 @@
 #include "sci_io.h"
 
 
-static unsigned short indexX=0;
-static unsigned short indexY=0;
-
-const unsigned char escRed[] = {0x1B, 0x5B, '3','1', 'm'};
-const unsigned char escWhite[] = {0x1B, 0x5B, '3','7', 'm'};
-const unsigned char escLeft[] = {0x1B, 0x5B, '3','7', 'm'};
-
-void drawTILogo2(void);
 
 //*************************************************************************************************************************
 //NAME: basicFuctionalityTest
@@ -155,6 +147,7 @@ void redirOut(void)
 void sciTest(void)
 {
 	unsigned char ucChar;
+	int count = 0;
 
     // For this example, only init the pins for the SCI-A port.
     EALLOW;
@@ -163,8 +156,6 @@ void sciTest(void)
     GpioCtrlRegs.GPCGMUX2.bit.GPIO84 = 1;
     GpioCtrlRegs.GPCGMUX2.bit.GPIO85 = 1;
     EDIS;
-
-	int count = 0;
 
 	redirOut();
 
@@ -186,30 +177,13 @@ void sciTest(void)
 
 }
 
-int16_t sampleADC(void)
-{
-	int16_t temp;
-	EALLOW;
-    //Force start of conversion on SOC0
-	AdcbRegs.ADCSOCFRC1.all = 0x03;
 
-    //Wait for end of conversion.
-    while(AdcbRegs.ADCINTFLG.bit.ADCINT1 == 0){}  //Wait for ADCINT1
-    AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;        //Clear ADCINT1
-
-    //Get temp sensor sample result from SOC0
-    temp = AdcbResultRegs.ADCRESULT0;
-    EDIS;
-
-    //Return the raw temperature because the devices don't have slope/offset values
-    return(temp);
-
-}
-
-void sciTestwADC(void)
+void sciTestwADC(ADC_Selection Select)
 {
 	unsigned char ucChar;
 	int16_t adcSample;
+	char* adcValString;
+
 
     // For this example, only init the pins for the SCI-A port.
     EALLOW;
@@ -219,7 +193,6 @@ void sciTestwADC(void)
     GpioCtrlRegs.GPCGMUX2.bit.GPIO85 = 1;
     EDIS;
 
-	int count = 0;
 
 	redirOut();
 
@@ -228,24 +201,117 @@ void sciTestwADC(void)
 
 	EALLOW;
 
-    adcSample = sampleADC();
+    for(;;)
+    {
+    	adcSample = sampleADC(Select);
+    	adcValString = convertADC(adcSample);
+    	printf("ADC Value = %sV", adcValString);
+    	ucChar = 10;
+    	putchar(ucChar);
+    	ucChar = 13;
+    	putchar(ucChar);
+    	DELAY_US(500000);
+    }//END FOR
+}//END FUNCTION
+
+void sciTestwComp(void)
+{
+	unsigned char ucChar;
+	int16_t adcSample;
+	char* adcValString;
+
+
+    // For this example, only init the pins for the SCI-A port.
+    EALLOW;
+    GpioCtrlRegs.GPCMUX2.bit.GPIO84 = 1;
+    GpioCtrlRegs.GPCMUX2.bit.GPIO85 = 1;
+    GpioCtrlRegs.GPCGMUX2.bit.GPIO84 = 1;
+    GpioCtrlRegs.GPCGMUX2.bit.GPIO85 = 1;
+    EDIS;
+
+
+	redirOut();
+
+    while(!SciaRegs.SCICTL2.bit.TXRDY);
+    SciaRegs.SCITXBUF.all = 0x1B;
+
+	EALLOW;
 
     for(;;)
     {
-    	adcSample = sampleADC();
-        //while(!SciaRegs.SCICTL2.bit.TXRDY);
-       // SciaRegs.SCITXBUF.all = count;
-    printf("ADC Value = [%d]", adcSample);
-    ucChar = 10;
-    putchar(ucChar);
-    ucChar = 13;
-    putchar(ucChar);
-    DELAY_US(500000);
-    }
+    	//Trip flag has been set
+    	if(EPwm1Regs.TZFLG.bit.OST)
+    	{
+    		//Wait for comparator Trip to de-assert
+    		while(Cmpss3Regs.COMPSTS.bit.COMPLSTS);
+        	adcSample = sampleADC(AC_VOLT);
+        	adcValString = convertADC(adcSample);
+        	printf("ADC Value = %sV", adcValString);
+        	ucChar = 10;
+        	putchar(ucChar);
+        	ucChar = 13;
+        	putchar(ucChar);
+        	DELAY_US(500000);
+        	//Clear flags
+        	EALLOW;
+        	EPwm1Regs.TZCLR.bit.INT = 0x1;
+        	EPwm1Regs.TZCLR.bit.OST = 0x1;
+        	EPwm1Regs.TZOSTCLR.bit.DCBEVT1 = 0x1;
+        	EDIS;
+    	}
+    }//END FOR
+}//END FUNCTION
+
+void sciTestwComp_GPIO(ADC_Selection Select)
+{
+	unsigned char ucChar;
+	int16_t adcSample;
+	char* adcValString;
+
+
+    // For this example, only init the pins for the SCI-A port.
+    EALLOW;
+    GpioCtrlRegs.GPCMUX2.bit.GPIO84 = 1;
+    GpioCtrlRegs.GPCMUX2.bit.GPIO85 = 1;
+    GpioCtrlRegs.GPCGMUX2.bit.GPIO84 = 1;
+    GpioCtrlRegs.GPCGMUX2.bit.GPIO85 = 1;
     EDIS;
 
-}
 
+	redirOut();
+
+    while(!SciaRegs.SCICTL2.bit.TXRDY);
+    SciaRegs.SCITXBUF.all = 0x1B;
+
+	EALLOW;
+
+    for(;;)
+    {
+    	//Trip flag has been set
+    	if(EPwm2Regs.TZFLG.bit.OST)
+    	{
+    		//Wait for comparator Trip to de-assert
+    		while(Cmpss3Regs.COMPSTS.bit.COMPLSTS);
+    		LoadSwitch(Select, LOAD_CLOSED);
+        	adcSample = sampleADC(AC_VOLT);
+        	adcValString = convertADC(adcSample);
+        	printf("ADC Value = %sV", adcValString);
+        	ucChar = 10;
+        	putchar(ucChar);
+        	ucChar = 13;
+        	putchar(ucChar);
+        	DELAY_US(500000);
+        	//Clear flags
+        	EALLOW;
+        	EPwm2Regs.TZCLR.bit.INT = 0x1;
+        	EPwm2Regs.TZCLR.bit.OST = 0x1;
+        	EPwm2Regs.TZOSTCLR.bit.DCAEVT1 = 0x1;
+        	EDIS;
+    	}
+    	else
+        	LoadSwitch(Select, LOAD_OPEN);
+    }//END FOR
+}//END FUNCTION
 
 
 

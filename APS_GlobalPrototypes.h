@@ -4,6 +4,7 @@
  *  Created on: Mar 24, 2016
  *      Author: schindld
  */
+#include "APS_GlobalDefs.h"
 
 #ifndef APS_GLOBALPROTOTYPES_H_
 #define APS_GLOBALPROTOTYPES_H_
@@ -32,6 +33,15 @@ void InitFlashAPS(int bank);
 void initSysPLL(int);
 void initPeripheralClocks(void);
 void GPIO_EnableUnbondedIOPullups(void);
+char* convertADC(int16_t);
+int16_t sampleADC(ADC_Selection ADCModule);
+void ADCInit(void);
+void CMPSSInit(void);
+void EPWMInit(void);
+void GPIOInit(void);
+void LoadSwitch(Load_Switch loadSwitch, int on);
+
+
 
 
 #endif /* APS_GLOBALPROTOTYPES_H_ */
