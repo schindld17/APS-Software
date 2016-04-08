@@ -201,7 +201,7 @@ void sciTestwADC(ADC_Selection Select)
 
 	EALLOW;
 
-    for(;;)
+   while(1)
     {
     	adcSample = sampleADC(Select);
     	adcValString = convertADC(adcSample);
@@ -214,7 +214,7 @@ void sciTestwADC(ADC_Selection Select)
     }//END FOR
 }//END FUNCTION
 
-void sciTestwComp(void)
+void sciTestwComp(ADC_Selection Select)
 {
 	unsigned char ucChar;
 	int16_t adcSample;
@@ -240,7 +240,7 @@ void sciTestwComp(void)
     for(;;)
     {
     	//Trip flag has been set
-    	if(EPwm1Regs.TZFLG.bit.OST)
+    	if(EPwm2Regs.TZFLG.bit.OST)
     	{
     		//Wait for comparator Trip to de-assert
     		while(Cmpss3Regs.COMPSTS.bit.COMPLSTS);

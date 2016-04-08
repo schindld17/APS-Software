@@ -25,8 +25,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define SAMPLEAVG 10
-#define VREFHIB 3.3
+#define SAMPLEAVG 100
+#define VREFHIB_PROD 120
+#define VREFHIB_TEST 3.3
 
 
 
@@ -205,7 +206,7 @@ void ADCInit(void)
 	//Associate SOC0 with Post Processing Block (PPB) 1
 	AdcbRegs.ADCPPB1CONFIG.bit.CONFIG = 0x0;
 	//Set SOC0 PPB offset correction to about .1V (ADCOut - 124)
-	AdcbRegs.ADCPPB1OFFREF = 0x7C;
+	//AdcbRegs.ADCPPB1OFFREF = 0x7C;
 	//End of conversion on SOC0 will set INT1 flag.
 	AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x0;
 	//Enable interrupt flag
@@ -502,7 +503,11 @@ char* convertADC(int16_t adcVal)
 		convVal = adcVal/ 65536;
 
 	//Multiply it by reference voltage ~3.3V (VDDA)
-	finalVal = convVal * VREFHIB;
+#ifdef _TEST
+	finalVal = convVal * VREFHIB_TEST;
+#else
+	finalVal = convVal * VREFHIB_PROD;
+#endif
 
 	//Convert float to integer to obtain integer portion of results
 	intHalf = finalVal;

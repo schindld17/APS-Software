@@ -71,7 +71,7 @@ int main(void)
 #ifdef _BASICTEST
     initsci();
 
-    sciTestwComp_GPIO(TWELVE_LOAD);
+    sciTestwComp(AC_VOLT);
 #endif
 
 }
