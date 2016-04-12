@@ -26,9 +26,6 @@
 #include <stdio.h>
 
 #define SAMPLEAVG 100
-#define VREFHIB_PROD 120
-#define VREFHIB_TEST 3.3
-
 
 
 //*************************************************************************************************************************
@@ -120,8 +117,12 @@ void ADCInit(void)
 	AdccRegs.ADCSOC0CTL.bit.ACQPS = 0x22;
 	//Associate SOC0 with Post Processing Block (PPB) 1
 	AdccRegs.ADCPPB1CONFIG.bit.CONFIG = 0x0;
+#ifdef _NO_VOLT_TEST
 	//Set SOC0 PPB offset correction to about .1V (ADCOut - 124)
 	AdccRegs.ADCPPB1OFFREF = 0x7C;
+#else
+
+#endif
 	//End of conversion on SOC0 will set INT1 flag.
 	AdccRegs.ADCINTSEL1N2.bit.INT1SEL = 0x0;
 	//Enable interrupt flag
@@ -137,8 +138,12 @@ void ADCInit(void)
 	AdcaRegs.ADCSOC0CTL.bit.ACQPS = 0x22;
 	//Associate SOC0 with Post Processing Block (PPB) 1
 	AdcaRegs.ADCPPB1CONFIG.bit.CONFIG = 0x0;
+#ifdef _NO_VOLT_TEST
 	//Set SOC0 PPB offset correction to about .1V (ADCOut - 124)
 	AdcaRegs.ADCPPB1OFFREF = 0x7C;
+#else
+
+#endif
 	//End of conversion on SOC0 will set INT1 flag.
 	AdcaRegs.ADCINTSEL1N2.bit.INT1SEL = 0x0;
 	//Enable interrupt flag
@@ -162,8 +167,12 @@ void ADCInit(void)
 	AdccRegs.ADCSOC1CTL.bit.ACQPS = 0x22;
 	//Associate SOC1 with Post Processing Block (PPB) 2
 	AdccRegs.ADCPPB2CONFIG.bit.CONFIG = 0x1;
+#ifdef _NO_VOLT_TEST
 	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
 	AdccRegs.ADCPPB2OFFREF = 0x7C;
+#else
+
+#endif
 	//End of conversion on SOC1 will set INT2 flag.
 	AdccRegs.ADCINTSEL1N2.bit.INT2SEL = 0x1;
 	//Enable interrupt flag
@@ -179,8 +188,12 @@ void ADCInit(void)
 	AdcaRegs.ADCSOC1CTL.bit.ACQPS = 0x22;
 	//Associate SOC1 with Post Processing Block (PPB) 2
 	AdcaRegs.ADCPPB2CONFIG.bit.CONFIG = 0x1;
+#ifdef _NO_VOLT_TEST
 	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
 	AdcaRegs.ADCPPB2OFFREF = 0x7C;
+#else
+
+#endif
 	//End of conversion on SOC1 will set INT2 flag.
 	AdcaRegs.ADCINTSEL1N2.bit.INT2SEL = 0x1;
 	//Enable interrupt flag
@@ -205,8 +218,13 @@ void ADCInit(void)
 	AdcbRegs.ADCSOC0CTL.bit.ACQPS = 0x22;
 	//Associate SOC0 with Post Processing Block (PPB) 1
 	AdcbRegs.ADCPPB1CONFIG.bit.CONFIG = 0x0;
+#ifdef _NO_VOLT_TEST
+	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
+	AdcaRegs.ADCPPB2OFFREF = 0x7C;
+#else
 	//Set SOC0 PPB offset correction to about .1V (ADCOut - 124)
-	//AdcbRegs.ADCPPB1OFFREF = 0x7C;
+	AdcbRegs.ADCPPB1OFFREF = 0x7C;
+#endif
 	//End of conversion on SOC0 will set INT1 flag.
 	AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x0;
 	//Enable interrupt flag
@@ -222,8 +240,12 @@ void ADCInit(void)
 	AdcbRegs.ADCSOC1CTL.bit.ACQPS = 0x22;
 	//Associate SOC1 with Post Processing Block (PPB) 2
 	AdcbRegs.ADCPPB2CONFIG.bit.CONFIG = 0x1;
+#ifdef _NO_VOLT_TEST
 	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
 	AdcbRegs.ADCPPB2OFFREF = 0x7C;
+#else
+
+#endif
 	//End of conversion on SOC1 will set INT2 flag.
 	AdcbRegs.ADCINTSEL1N2.bit.INT2SEL = 0x1;
 	//Enable interrupt flag
@@ -248,8 +270,12 @@ void ADCInit(void)
 	AdcdRegs.ADCSOC0CTL.bit.ACQPS = 0x22;
 	//Associate SOC0 with Post Processing Block (PPB) 1
 	AdcdRegs.ADCPPB1CONFIG.bit.CONFIG = 0x0;
-	//Set SOC0 PPB offset correction to about .1V (ADCOut - 124)
-	AdcdRegs.ADCPPB1OFFREF = 0x7C;
+#ifdef _NO_VOLT_TEST
+	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
+	AdcbRegs.ADCPPB2OFFREF = 0x7C;
+#else
+
+#endif
 	//End of conversion on SOC0 will set INT1 flag.
 	AdcdRegs.ADCINTSEL1N2.bit.INT1SEL = 0x0;
 	//Enable interrupt flag
@@ -265,8 +291,12 @@ void ADCInit(void)
 	AdcdRegs.ADCSOC1CTL.bit.ACQPS = 0x22;
 	//Associate SOC1 with Post Processing Block (PPB) 2
 	AdcdRegs.ADCPPB2CONFIG.bit.CONFIG = 0x1;
+#ifdef _NO_VOLT_TEST
 	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
 	AdcdRegs.ADCPPB2OFFREF = 0x7C;
+#else
+
+#endif
 	//End of conversion on SOC1 will set INT2 flag.
 	AdcdRegs.ADCINTSEL1N2.bit.INT2SEL = 0x1;
 	//Enable interrupt flag
@@ -289,8 +319,12 @@ void ADCInit(void)
 	AdcaRegs.ADCSOC2CTL.bit.ACQPS = 0x22;
 	//Associate SOC2 with Post Processing Block (PPB) 3
 	AdcaRegs.ADCPPB3CONFIG.bit.CONFIG = 0x2;
+#ifdef _NO_VOLT_TEST
 	//Set SOC2 PPB offset correction to about .1V (ADCOut - 124)
 	AdcaRegs.ADCPPB3OFFREF = 0x7C;
+#else
+
+#endif
 	//End of conversion on SOC2 will set INT3 flag.
 	AdcaRegs.ADCINTSEL3N4.bit.INT3SEL = 0x2;
 	//Enable interrupt flag
@@ -313,8 +347,13 @@ void ADCInit(void)
 	AdcaRegs.ADCSOC3CTL.bit.ACQPS = 0x22;
 	//Associate SOC3 with Post Processing Block (PPB) 4
 	AdcaRegs.ADCPPB4CONFIG.bit.CONFIG = 0x3;
+#ifdef _NO_VOLT_TEST
+	//Set SOC2 PPB offset correction to about .1V (ADCOut - 124)
+	AdcaRegs.ADCPPB3OFFREF = 0x7C;
+#else
 	//Set SOC3 PPB offset correction to about .1V (ADCOut - 124)
 	AdcaRegs.ADCPPB4OFFREF = 0x7C;
+#endif
 	//End of conversion on SOC3 will set INT4 flag.
 	AdcaRegs.ADCINTSEL3N4.bit.INT4SEL = 0x3;
 	//Enable interrupt flag
@@ -489,12 +528,11 @@ int16_t sampleADC(ADC_Selection ADCModule)
 //AUTHOR: Dylan Schindler
 //*************************************************************************************************************************
 
-char* convertADC(int16_t adcVal)
+void convertADC(int16_t adcVal, ADC_Selection ADCModule, char* returnString)
 {
 	float convVal = 0, finalVal = 0, decHalfFloat;
 	int intAdcVal = (int)adcVal, intHalf, decHalfInt;
-	char* finalValString;
-	finalValString = (char*)malloc(16);
+
 
 	//Divide the intput value by the correct resolution (2^12 or 2^16)
 	if(AdcbRegs.ADCCTL2.bit.RESOLUTION == 0)
@@ -503,9 +541,49 @@ char* convertADC(int16_t adcVal)
 		convVal = adcVal/ 65536;
 
 	//Multiply it by reference voltage ~3.3V (VDDA)
-#ifdef _TEST
-	finalVal = convVal * VREFHIB_TEST;
+#ifdef _NO_VOLT_TEST
+	finalVal = convVal * VDDA;
 #else
+	//Select the correct reference voltage constant
+	switch (ADCModule)
+		{
+			case HYDRO_VOLT://ADCINC4/~3.3V
+				finalVal = convVal * VREFHI_HYDRO_VOLT;
+				break;
+			case HYDRO_CUR://ADCINA1/~3.3V
+				finalVal = convVal * VREFHI_HYDRO_CUR;
+				//NOTE: ADD Current Conversions
+				break;
+			case SOL_VOLT://ADCINC2/~3.3V
+				finalVal = convVal * VREFHI_SOL_VOLT;
+				break;
+			case SOL_CUR://ADCINA0/~3.3V
+				finalVal = convVal * VREFHI_SOL_CUR;
+				//NOTE: ADD Current Conversions
+				break;
+			case AC_VOLT://ADCINB2/~3.3V
+				finalVal = convVal * VREFHI_AC_VOLT;
+				break;
+			case AC_CUR://ADCINB1/~3.3V
+				finalVal = convVal * VREFHI_AC_CUR;
+				//NOTE: ADD Current Conversions
+				break;
+			case CAP_VOLT://ADCIND2/~3.3V
+				finalVal = convVal * VREFHI_CAP_VOLT;
+				break;
+			case CAP_CUR://ADCIND4/~3.3V
+				finalVal = convVal * VREFHI_CAP_CUR;
+				//NOTE: ADD Current Conversions
+				break;
+			case FIVEV_CUR://ADCINA2/~3.3V
+				finalVal = convVal * VREFHI_FIVEV_CUR;
+				//NOTE: ADD Current Conversions
+				break;
+			case TWELVEV_CUR://ADCINA4/~3.3V
+				finalVal = convVal * VREFHI_TWELVE_CUR;
+				//NOTE: ADD Current Conversions
+				break;
+		}//END SWITCH
 	finalVal = convVal * VREFHIB_PROD;
 #endif
 
@@ -520,16 +598,16 @@ char* convertADC(int16_t adcVal)
 
 	//Depending on the size of the decimal portion create a string with the correct number of leading zeros
 	if(decHalfInt > 1000)
-		sprintf(finalValString, "%d.%d",intHalf,decHalfInt);
+		sprintf(returnString, "%d.%d",intHalf,decHalfInt);
 	else if(decHalfInt < 1000 & decHalfInt > 100)
-		sprintf(finalValString, "%d.0%d",intHalf,decHalfInt);
+		sprintf(returnString, "%d.0%d",intHalf,decHalfInt);
 	else if(decHalfInt < 100 & decHalfInt > 10)
-		sprintf(finalValString, "%d.00%d",intHalf,decHalfInt);
+		sprintf(returnString, "%d.00%d",intHalf,decHalfInt);
 	else
-		sprintf(finalValString, "%d.000%d",intHalf,decHalfInt);
+		sprintf(returnString, "%d.000%d",intHalf,decHalfInt);
 
 	//Output final formatted string as IntegerPortion.(LeadingZeros)DecimalPortion
-    return((char *)finalValString);
+    return;
 }//END FUNCTION
 
 

@@ -25,6 +25,7 @@ void InitSysCtrl(void);
 
 int main(void)
 {
+
     // If running from flash copy RAM only functions to RAM
 #ifdef _FLASH
     memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
@@ -52,11 +53,8 @@ int main(void)
     // is not used in this example.  This is useful for debug purposes.
     // The shell ISR routines are found in F2806x_DefaultIsr.c.
     // This function is found in F2806x_PieVect.c.
-       InitPieVectTable();
+    InitPieVectTable();
 
-    // Enable global Interrupts and higher priority real-time debug events:
-    EINT;   // Enable Global interrupt INTM
-    ERTM;   // Enable Global realtime interrupt DBGM
 
     //Initialize GPIO pins
     GPIOInit();
@@ -68,10 +66,32 @@ int main(void)
     CMPSSInit();
     EPWMInit();
 
-#ifdef _BASICTEST
     initsci();
 
-    sciTestwComp(AC_VOLT);
+#ifndef _INT_ON
+    // Enable global Interrupts and higher priority real-time debug events:
+    EINT;   // Enable Global interrupt INTM
+    ERTM;   // Enable Global realtime interrupt DBGM
+#else
+    //Initialize custom PIE Interrupt Mappings
+    APSPieInit();
+#endif
+
+#ifdef _INT_TEST
+    while(1)
+    {
+        asm ("          NOP");
+    }
+#endif
+
+
+#ifdef _BASICTEST
+
+while(1)
+{
+	sciTestwComp(AC_VOLT);
+
+}
 #endif
 
 }

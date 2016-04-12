@@ -63,18 +63,39 @@ void CMPSSInit(void)
 	///////////CMPSS3 Positive Values//////////////////////////////////////////
 	//Enable CMPSS
 	Cmpss3Regs.COMPCTL.bit.COMPDACE = 0x1;
-	//Set Negative signal for CMPSSL to come from internal DAC
-	Cmpss3Regs.COMPCTL.bit.COMPLSOURCE = 0x0;
-	//Cmpss3Regs.COMPCTL.bit.COMPHSOURCE = 0x1;
 	//Use VDDA as reference for DAC
 	Cmpss3Regs.COMPDACCTL.bit.SELREF = 0x0;
+	////////////CMPSS High//////////////////////
+	//Set Negative signal for CMPSSH to come from internal DAC
+	Cmpss3Regs.COMPCTL.bit.COMPHSOURCE = 0x0;
+	Cmpss3Regs.COMPCTL.bit.COMPHINV = 0x1;
+#ifdef _NO_VOLT_TEST
 	//Set DAC to midpoint for reference
-	Cmpss3Regs.DACLVALS.bit.DACVAL = 2048;
+	Cmpss3Regs.DACHVALS.bit.DACVAL = 2048;
+#else
+	//Set DAC to midpoint for reference
+	Cmpss3Regs.DACHVALS.bit.DACVAL = CMPSS_AC_H;
+#endif
+	//Asynch output feeds for CTRIPH
+	Cmpss3Regs.COMPCTL.bit.CTRIPHSEL = 0x0;
+	//Cmpss3Regs.COMPCTL.bit.CTRIPOUTHSEL = 0x0;
+	//Configure OUTPUTXBAR1 to be CMPSS3.CTRIPH
+	//OutputXbarRegs.OUTPUT1MUX0TO15CFG.bit.MUX4 = 0x0;
+	////////////CMPSS Low//////////////////////
+	//Set Negative signal for CMPSSL to come from internal DAC
+	Cmpss3Regs.COMPCTL.bit.COMPLSOURCE = 0x0;
+	Cmpss3Regs.COMPCTL.bit.COMPLINV = 0x0;
+#ifdef _NO_VOLT_TEST
+	//Set DAC to midpoint for reference
+	Cmpss3Regs.DACLVALS.bit.DACVAL = 100;
+#else
+	//Set DAC to midpoint for reference
+	Cmpss3Regs.DACLVALS.bit.DACVAL = CMPSS_AC_L;
+#endif
 	//Asynch output feeds for CTRIPH and CTRIPOUTH
 	Cmpss3Regs.COMPCTL.bit.CTRIPLSEL = 0x0;
-	Cmpss3Regs.COMPCTL.bit.CTRIPOUTHSEL = 0x0;
-	//Configure OUTPUTXBAR2 to be CTRIPOUT3H
-	OutputXbarRegs.OUTPUT2MUX0TO15CFG.bit.MUX5 = 0x0;
+	//Configure OUTPUTXBAR2 to be CMPSS3.CTRIPL
+	//OutputXbarRegs.OUTPUT2MUX0TO15CFG.bit.MUX5 = 0x0;
 
 	EDIS;
 
@@ -135,7 +156,7 @@ void CMPSSInit(void)
 	//Use VDDA as reference for DAC
 	Cmpss2Regs.COMPDACCTL.bit.SELREF = 0x0;
 	//Set DAC to midpoint for reference
-	Cmpss2Regs.DACHVALS.bit.DACVAL = 2048;
+	Cmpss2Regs.DACHVALS.bit.DACVAL = 1;
 	//Asynch output feeds for CTRIPH and CTRIPOUTH
 	Cmpss2Regs.COMPCTL.bit.CTRIPHSEL = 0x0;
 	Cmpss2Regs.COMPCTL.bit.CTRIPOUTHSEL = 0x0;
@@ -214,26 +235,41 @@ void EPWMInit(void)
 	EPwm2Regs.TBCTR = 0;
 	EPwm2Regs.TBPRD = 0xFFFF;
 	//Configure EPWM1 to output high on Trip Zone A Trip
-	EPwm2Regs.TZCTL.bit.TZA = 0x1;
-	//Configure Digital Comparator Trip Zone Output A (DCA) Event 1 to be Trip 4
+	//EPwm2Regs.TZCTL.bit.TZA = 0x1;
+	//Configure DCAEVNT1 to be Trip 4
+	EPwm2Regs.DCTRIPSEL.bit.DCAHCOMPSEL = 0x0;
+	//EPwm2Regs.DCAHTRIPSEL.bit.TRIPINPUT4 = 0x1;
+	//Configure DCAEVNT2 to be Trip 5
+	EPwm2Regs.DCTRIPSEL.bit.DCALCOMPSEL = 0x1;
+	//EPwm2Regs.DCALTRIPSEL.bit.TRIPINPUT5 = 0x1;
+	//Configure Digital Comparator Trip Zone Output A (DCA) Event 1 to be DCAH 1
 	EPwm2Regs.TZDCSEL.bit.DCAEVT1 = 0x2;
-	EPwm2Regs.DCTRIPSEL.bit.DCALCOMPSEL = 0xF;
-	EPwm2Regs.DCAHTRIPSEL.bit.TRIPINPUT4 = 0x1;
-	//Configure DCA as One-Shot-Trip
+	//Configure Digital Comparator Trip Zone Output A (DCA) Event 2 to be DCAL 0
+	EPwm2Regs.TZDCSEL.bit.DCAEVT2 = 0x2;
+	//Configure DCAEVT1 as One-Shot-Trip
 	EPwm2Regs.TZSEL.bit.DCAEVT1 = 0x1;
+	//Configure DCAEVT1 as One-Shot-Trip
+	EPwm2Regs.TZSEL.bit.DCAEVT2 = 0x1;
 	//Configure DCA to be unfiltered and asynch
 	EPwm2Regs.DCACTL.bit.EVT1SRCSEL = 0x0;
 	EPwm2Regs.DCACTL.bit.EVT1FRCSYNCSEL = 0x1;
+	EPwm2Regs.DCACTL.bit.EVT2SRCSEL = 0x0;
+	EPwm2Regs.DCACTL.bit.EVT2FRCSYNCSEL = 0x1;
 	CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0x1;
-	//Configure Trip 4 to be Comparator High
-	EPwmXbarRegs.TRIP4MUX0TO15CFG.bit.MUX5 = 0x0;
+	//Configure Trip 4 to be CMPSSH
+	EPwmXbarRegs.TRIP4MUX0TO15CFG.bit.MUX4 = 0x0;
+	//Configure Trip 5 to be CMPSSL
+	EPwmXbarRegs.TRIP5MUX0TO15CFG.bit.MUX5 = 0x0;
 	//Enable Trip 4 Mux for Output
-	EPwmXbarRegs.TRIP4MUXENABLE.bit.MUX5 = 0x1;
+	//EPwmXbarRegs.TRIP4MUXENABLE.bit.MUX4 = 0x1;
 	//Clear trip flags
 	EPwm2Regs.TZCLR.bit.OST = 0x1;
 	EPwm2Regs.TZCLR.bit.INT = 0x1;
+	EPwm2Regs.TZCLR.bit.DCAEVT1 = 0x1;
+	EPwm2Regs.TZCLR.bit.DCAEVT2 = 0x1;
 	//Enable DCA interrupt
-	EPwm2Regs.TZEINT.bit.OST = 0x1;
+	EPwm2Regs.TZEINT.bit.DCAEVT1 = 0x1;
+	EPwm2Regs.TZEINT.bit.DCAEVT2 = 0x1;
 	//Enable PWM
 	EPwm2Regs.TBCTL.bit.CTRMODE = 0x0;
 

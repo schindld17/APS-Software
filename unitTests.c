@@ -106,6 +106,20 @@ void initsci(void)
 	//Relinquish SCI from Reset
 	SciaRegs.SCICTL1.all = 0x0023;
 
+
+    // For this example, only init the pins for the SCI-A port.
+    EALLOW;
+    GpioCtrlRegs.GPCMUX2.bit.GPIO84 = 1;
+    GpioCtrlRegs.GPCMUX2.bit.GPIO85 = 1;
+    GpioCtrlRegs.GPCGMUX2.bit.GPIO84 = 1;
+    GpioCtrlRegs.GPCGMUX2.bit.GPIO85 = 1;
+    EDIS;
+
+
+    while(!SciaRegs.SCICTL2.bit.TXRDY);
+    SciaRegs.SCITXBUF.all = 0x1B;
+
+
 	EDIS;
 
 }//END FUNCTION
@@ -162,7 +176,6 @@ void sciTest(void)
     while(!SciaRegs.SCICTL2.bit.TXRDY);
     SciaRegs.SCITXBUF.all = 0x1B;
 	EALLOW;
-    //putchar(0x1B); //Escape char
     for(count = 0; count < 100; count++)
     {
         //while(!SciaRegs.SCICTL2.bit.TXRDY);
@@ -182,7 +195,7 @@ void sciTestwADC(ADC_Selection Select)
 {
 	unsigned char ucChar;
 	int16_t adcSample;
-	char* adcValString;
+	char adcValString[16];
 
 
     // For this example, only init the pins for the SCI-A port.
@@ -204,7 +217,7 @@ void sciTestwADC(ADC_Selection Select)
    while(1)
     {
     	adcSample = sampleADC(Select);
-    	adcValString = convertADC(adcSample);
+    	convertADC(adcSample,AC_VOLT, adcValString);
     	printf("ADC Value = %sV", adcValString);
     	ucChar = 10;
     	putchar(ucChar);
@@ -218,7 +231,8 @@ void sciTestwComp(ADC_Selection Select)
 {
 	unsigned char ucChar;
 	int16_t adcSample;
-	char* adcValString;
+	char adcValString [16];
+	//char*date = __DATE__ + __TIME__
 
 
     // For this example, only init the pins for the SCI-A port.
@@ -237,6 +251,7 @@ void sciTestwComp(ADC_Selection Select)
 
 	EALLOW;
 
+	printf("Time is %s",__DATE__  );
     for(;;)
     {
     	//Trip flag has been set
@@ -245,7 +260,7 @@ void sciTestwComp(ADC_Selection Select)
     		//Wait for comparator Trip to de-assert
     		while(Cmpss3Regs.COMPSTS.bit.COMPLSTS);
         	adcSample = sampleADC(AC_VOLT);
-        	adcValString = convertADC(adcSample);
+        	convertADC(adcSample,AC_VOLT,adcValString);
         	printf("ADC Value = %sV", adcValString);
         	ucChar = 10;
         	putchar(ucChar);
@@ -266,7 +281,7 @@ void sciTestwComp_GPIO(ADC_Selection Select)
 {
 	unsigned char ucChar;
 	int16_t adcSample;
-	char* adcValString;
+	char adcValString[16];
 
 
     // For this example, only init the pins for the SCI-A port.
@@ -294,7 +309,7 @@ void sciTestwComp_GPIO(ADC_Selection Select)
     		while(Cmpss3Regs.COMPSTS.bit.COMPLSTS);
     		LoadSwitch(Select, LOAD_CLOSED);
         	adcSample = sampleADC(AC_VOLT);
-        	adcValString = convertADC(adcSample);
+        	convertADC(adcSample,AC_VOLT,adcValString);
         	printf("ADC Value = %sV", adcValString);
         	ucChar = 10;
         	putchar(ucChar);

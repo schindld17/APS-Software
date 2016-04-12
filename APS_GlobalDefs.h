@@ -34,5 +34,30 @@ typedef enum
 #define LOAD_OPEN 1
 #define LOAD_CLOSED 2
 
+//NOTE: For prodcution these should be global values that can be changed and calibrated as necessary
+
+//Reference Voltage Constants for ADC sampling conversion [found in ADCMod.C - convertADC()]
+#define VREFHI_AC_VOLT 120
+#define VREFHI_AC_CUR 120
+#define VREFHI_SOL_VOLT 120
+#define VREFHI_SOL_CUR 120
+#define VREFHI_HYDRO_VOLT 120
+#define VREFHI_HYDRO_CUR 120
+#define VREFHI_CAP_VOLT 120
+#define VREFHI_CAP_CUR 120
+#define VREFHI_FIVEV_CUR 120
+#define VREFHI_TWELVE_CUR 120
+#define VDDA 3.3
+
+//CMPSS Constants
+#define CMPSS_AC_H 2048
+#define CMPSS_AC_L 2048
+#define CMPSS_SOL_H 2048
+#define CMPSS_SOL_L 2048
+#define CMPSS_FIVEV_H 2048
+#define CMPSS_FIVEV_L 2048
+#define CMPSS_TWELVE_H 2048
+#define CMPSS_FIVEV_L 2048
+
 
 #endif /* APS_GLOBALDEFS_H_ */
