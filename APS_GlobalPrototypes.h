@@ -29,6 +29,7 @@ extern Uint16 RamfuncsRunStart;
 extern Uint16 RamfuncsRunEnd;
 extern Uint16 RamfuncsRunSize;
 
+
 //System Initilization Function Prototypes
 void WatchDogDisable(void);
 void InitFlashAPS(int bank);
@@ -41,9 +42,13 @@ void ADCInit(void);
 void CMPSSInit(void);
 void EPWMInit(void);
 void GPIOInit(void);
-void LoadSwitch(Load_Switch loadSwitch, int on);
+void LoadSwitch(Load_Switch, int);
 void APSPieInit(void);
 interrupt void epwm2_isr(void);
+interrupt void realclock_isr(void);
+void systemBoot(void);
+void setTime(void);
+int addSeconds(int);
 
 
 

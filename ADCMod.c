@@ -160,6 +160,7 @@ void ADCInit(void)
 	EALLOW;
 
 	///////////ADCINC2/SOC1 Values//////////////////////////////////////////
+#ifndef _LAUNCH
 
 	//SOC1 will convert pin ADCINC2.
 	AdccRegs.ADCSOC1CTL.bit.CHSEL = 0x2;
@@ -179,6 +180,32 @@ void ADCInit(void)
 	AdccRegs.ADCINTSEL1N2.bit.INT2E = 0x1;
 	//Clear INT2 interrupt flag
 	AdccRegs.ADCINTFLGCLR.bit.ADCINT2 = 0x1;
+
+#else
+	///////////ADCINA2/SOC2 Values//////////////////////////////////////////
+
+	//SOC2 will convert pin ADCINA2.
+	AdcaRegs.ADCSOC2CTL.bit.CHSEL = 0x2;
+	//SOC2 sample window is 26 SYSCLOCK cycles (~82ns).
+	AdcaRegs.ADCSOC2CTL.bit.ACQPS = 0x22;
+	//Associate SOC2 with Post Processing Block (PPB) 3
+	AdcaRegs.ADCPPB3CONFIG.bit.CONFIG = 0x2;
+#ifdef _NO_VOLT_TEST
+	//Set SOC2 PPB offset correction to about .1V (ADCOut - 124)
+	AdcaRegs.ADCPPB3OFFREF = 0x7C;
+#else
+
+#endif
+	//End of conversion on SOC2 will set INT3 flag.
+	AdcaRegs.ADCINTSEL3N4.bit.INT3SEL = 0x2;
+	//Enable interrupt flag
+	AdcaRegs.ADCINTSEL3N4.bit.INT3E = 0x1;
+	//Clear INT3 interrupt flag
+	AdcaRegs.ADCINTFLGCLR.bit.ADCINT3 = 0x1;
+
+	EDIS;
+#endif
+
 
 	///////////ADCINA0/SOC1 Values//////////////////////////////////////////
 
@@ -411,6 +438,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 					sample = AdcaResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
 
 					break;
+#ifndef _LAUNCH
 				case SOL_VOLT://ADCINC2/SOC1/PPB2/INT2
 					//Force start of conversion on SOC1
 					AdccRegs.ADCSOCFRC1.bit.SOC1 = 0x01;
@@ -423,6 +451,21 @@ int16_t sampleADC(ADC_Selection ADCModule)
 					sample = AdccResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
 
 					break;
+#else
+				case SOL_VOLT://ADCINA4/SOC3/PPB/INT4
+					//Force start of conversion on SOC3
+					AdcaRegs.ADCSOCFRC1.bit.SOC3 = 0x01;
+
+					//Wait for end of conversion.
+					while(AdcaRegs.ADCINTFLG.bit.ADCINT4 == 0){}  //Wait for ADCINT4
+					AdcaRegs.ADCINTFLGCLR.bit.ADCINT4 = 1;        //Clear ADCINT4
+
+					//Get ADC sample result from SOC3
+					sample = AdcaResultRegs.ADCPPB4RESULT.bit.PPBRESULT + sample;
+
+					break;
+#endif
+
 				case SOL_CUR://ADCINA0/SOC1/PPB2/INT2
 					//Force start of conversion on SOC0
 					AdcaRegs.ADCSOCFRC1.bit.SOC1 = 0x01;

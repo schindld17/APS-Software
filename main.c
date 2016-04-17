@@ -20,6 +20,17 @@
 #include "F2837xS_device.h"
 #include "APS_GlobalPrototypes.h"
 
+int32_t realtime = 0;
+char provided_date[11] = __DATE__;
+char provided_time[8] = __TIME__;
+char month[3];
+char day[2];
+char year[4];
+char hour[2];
+char minute[2];
+char second[2];
+JULIANTIME julianTime;
+
 
 void InitSysCtrl(void);
 
@@ -28,7 +39,8 @@ int main(void)
 
     // If running from flash copy RAM only functions to RAM
 #ifdef _FLASH
-    memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
+
+	memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
 #endif
 
     InitSysCtrl();
@@ -55,6 +67,8 @@ int main(void)
     // This function is found in F2806x_PieVect.c.
     InitPieVectTable();
 
+    setTime();
+
 
     //Initialize GPIO pins
     GPIOInit();
@@ -68,18 +82,30 @@ int main(void)
 
     initsci();
 
+    systemBoot();
+
+    RClock_ePWMInit();
+
+    APSPieInit();
+
 #ifndef _INT_ON
     // Enable global Interrupts and higher priority real-time debug events:
     EINT;   // Enable Global interrupt INTM
     ERTM;   // Enable Global realtime interrupt DBGM
 #else
     //Initialize custom PIE Interrupt Mappings
-    APSPieInit();
+    //APSPieInit();
 #endif
 
 #ifdef _INT_TEST
     while(1)
+
     {
+    	//LoadSwitch(SOL_LOAD, LOAD_CLOSED);
+    	//DELAY_US(500000);
+    	//LoadSwitch(SOL_LOAD, LOAD_OPEN);
+    	//DELAY_US(500000);
+
         asm ("          NOP");
     }
 #endif
@@ -93,5 +119,40 @@ while(1)
 
 }
 #endif
+
+}
+
+void systemBoot(void)
+{
+	int16_t ACAdc, SolAdc, HydoAdc;
+
+	//Check to see if AC Input or Solar Input has power
+	ACAdc = sampleADC(AC_VOLT);
+	SolAdc = sampleADC(SOL_VOLT);
+#ifdef _NO_VOLT_TEST
+	if((ACAdc > 100) | (SolAdc > 100))
+#else
+	if((ACAdc > CMPSS_AC_L) | (SolAdc > CMPSS_SOL_L))
+#endif
+	{
+		//If Solar has power turn off other loads and use only Solar
+		if(SolAdc > 100)
+		{
+			LoadSwitch(SOL_LOAD, LOAD_OPEN);
+			LoadSwitch(AC_LOAD, LOAD_CLOSED);
+			LoadSwitch(HYDRO_LOAD, LOAD_CLOSED);
+			//NOTE: NEED HYDRO_SWITCH
+		}
+		else
+		{
+			LoadSwitch(SOL_LOAD, LOAD_CLOSED);
+			LoadSwitch(AC_LOAD, LOAD_OPEN);
+			LoadSwitch(HYDRO_LOAD, LOAD_CLOSED);
+		}
+		return;
+
+	}
+	else
+		return;
 
 }

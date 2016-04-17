@@ -328,6 +328,34 @@ void sciTestwComp_GPIO(ADC_Selection Select)
     }//END FOR
 }//END FUNCTION
 
+void realClockTest(void)
+{
+	unsigned char ucChar;
+	int firstTime = 0;
+
+	if(firstTime == 0)
+	{
+	    // For this example, only init the pins for the SCI-A port.
+	    EALLOW;
+	    GpioCtrlRegs.GPCMUX2.bit.GPIO84 = 1;
+	    GpioCtrlRegs.GPCMUX2.bit.GPIO85 = 1;
+	    GpioCtrlRegs.GPCGMUX2.bit.GPIO84 = 1;
+	    GpioCtrlRegs.GPCGMUX2.bit.GPIO85 = 1;
+	    EDIS;
+
+		redirOut();
+		firstTime = 1;
+	}
+
+    printf("Current Date = %c%c%c %d, %d", julianTime.month[0],julianTime.month[1], julianTime.month[2], julianTime.day, julianTime.year);
+    printf("  Current Time = %d:%d:%d", julianTime.hour, julianTime.minute, julianTime.second);
+    ucChar = 10;
+    putchar(ucChar);
+    ucChar = 13;
+    putchar(ucChar);
+
+}//END FUNCTION
+
 
 
 

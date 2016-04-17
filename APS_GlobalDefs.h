@@ -8,6 +8,17 @@
 #ifndef APS_GLOBALDEFS_H_
 #define APS_GLOBALDEFS_H_
 
+typedef struct julianTime_struct
+{
+	char month[3];
+	int day;
+	int year;
+	int hour;
+	int minute;
+	int second;
+
+} JULIANTIME;
+
 typedef enum
 {
 	HYDRO_VOLT,
@@ -31,8 +42,8 @@ typedef enum
 	TWELVE_LOAD
 }Load_Switch;
 
-#define LOAD_OPEN 1
-#define LOAD_CLOSED 2
+#define LOAD_OPEN 0
+#define LOAD_CLOSED 1
 
 //NOTE: For prodcution these should be global values that can be changed and calibrated as necessary
 
@@ -54,10 +65,23 @@ typedef enum
 #define CMPSS_AC_L 2048
 #define CMPSS_SOL_H 2048
 #define CMPSS_SOL_L 2048
+#define CMPSS_CAP_H 2048
+#define CMPSS_CAP_L 2048
 #define CMPSS_FIVEV_H 2048
 #define CMPSS_FIVEV_L 2048
 #define CMPSS_TWELVE_H 2048
 #define CMPSS_FIVEV_L 2048
+
+extern int32_t realtime;
+extern char provided_date[11];
+extern char provided_time[8];
+extern char month[3];
+extern char day[2];
+extern char year[4];
+extern char hour[2];
+extern char minute[2];
+extern char second[2];
+extern JULIANTIME julianTime;
 
 
 #endif /* APS_GLOBALDEFS_H_ */

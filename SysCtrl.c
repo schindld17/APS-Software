@@ -410,16 +410,15 @@ void initPeripheralClocks(void)
 	/////NOTE
 	//Need to add in initilization gate and init for USB.
 
-	//Turn on ePWM Module 1
+	//Turn on ePWM Modules
 	CpuSysRegs.PCLKCR2.bit.EPWM1 = 0x1;
-	//Turn on ePWM Module 2
 	CpuSysRegs.PCLKCR2.bit.EPWM2 = 0x1;
-	//Turn on ePWM Module 3
 	CpuSysRegs.PCLKCR2.bit.EPWM3 = 0x1;
-	//Turn on ePWM Module 4
 	CpuSysRegs.PCLKCR2.bit.EPWM4 = 0x1;
-	//Turn on ePWM Module 5
 	CpuSysRegs.PCLKCR2.bit.EPWM5 = 0x1;
+	CpuSysRegs.PCLKCR2.bit.EPWM12 = 0x1;
+	//Set EPWM modules clocks to be PLLSYS/2
+	ClkCfgRegs.PERCLKDIVSEL.bit.EPWMCLKDIV = 0x1;
 
 
 	//Turn off all other peripherals.

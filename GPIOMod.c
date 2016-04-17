@@ -33,66 +33,69 @@
 //*************************************************************************************************************************
 void GPIOInit(void)
 {
-	EALLOW;
-
 	/////////////Hydrogen Load Switch (Block S)/////////////////////////////////
+	EALLOW;
 #ifdef _LAUNCH
 	//Initialize GPIO Pin 90 as output
 	GpioCtrlRegs.GPCDIR.bit.GPIO90 = 1;
 	//Turn on GPIO Pin 90 (Open Load Switch)
-	GpioDataRegs.GPCSET.bit.GPIO90 = LOAD_OPEN;
+	LoadSwitch(HYDRO_LOAD, LOAD_OPEN);
 #else
 	//Initialize GPIO Pin 44 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO44 = 1;
 	//Turn on GPIO Pin 44 (Open Load Switch)
 	GpioDataRegs.GPCSET.bit.GPIO44 = LOAD_OPEN;
 #endif
-
+	EDIS;
 	/////////////Solar Load Switch (Block M)////////////////////////////////////
+	EALLOW;
 #ifdef _LAUNCH
 	//Initialize GPIO Pin 89 as output
 	GpioCtrlRegs.GPCDIR.bit.GPIO89 = 1;
 	//Turn on GPIO Pin 89 (Open Load Switch)
-	GpioDataRegs.GPCSET.bit.GPIO89 = LOAD_OPEN;
+	LoadSwitch(SOL_LOAD, LOAD_OPEN);
 #else
 	//Initialize GPIO Pin 45 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO45 = 1;
 	//Turn on GPIO Pin 45 (Open Load Switch)
 	GpioDataRegs.GPCSET.bit.GPIO45 = LOAD_OPEN;
 #endif
-
+	EDIS;
 	/////////////AC Load Switch (Block C)///////////////////////////////////////
+	EALLOW;
 #ifdef _LAUNCH
 	//Initialize GPIO Pin 71 as output
 	GpioCtrlRegs.GPCDIR.bit.GPIO71 = 1;
 	//Turn on GPIO Pin 71 (Open Load Switch)
-	GpioDataRegs.GPCSET.bit.GPIO71 = LOAD_OPEN;
+	LoadSwitch(AC_LOAD, LOAD_OPEN);
 #else
 	//Initialize GPIO Pin 48 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO48 = 1;
 	//Turn on GPIO Pin 48 (Open Load Switch)
 	GpioDataRegs.GPCSET.bit.GPIO48 = LOAD_OPEN;
 #endif
-
+	EDIS;
 	/////////////5V Output Load Switch (Block D)/////////////////////////////////
+	EALLOW;
 #ifdef _LAUNCH
 	//Initialize GPIO Pin 41 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO41 = 1;
 	//Turn on GPIO Pin 41 (Open Load Switch)
-	GpioDataRegs.GPBSET.bit.GPIO41 = LOAD_OPEN;
+	LoadSwitch(FIVE_LOAD, LOAD_OPEN);
 #else
 	//Initialize GPIO Pin 47 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO47 = 1;
 	//Turn on GPIO Pin 47 (Open Load Switch)
 	GpioDataRegs.GPCSET.bit.GPIO47 = LOAD_OPEN;
 #endif
-
+	EDIS;
 	/////////////12V Output Load Switch (Block T)/////////////////////////////////
+	EALLOW;
 #ifdef _LAUNCH
 	//Initialize GPIO Pin 60 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO60 = 1;
 	//Turn on GPIO Pin 60 (Open Load Switch)
-	GpioDataRegs.GPBSET.bit.GPIO60 = LOAD_OPEN;
+	LoadSwitch(TWELVE_LOAD, LOAD_OPEN);
 #else
 	//Initialize GPIO Pin 67 as output
 	GpioCtrlRegs.GPCDIR.bit.GPIO67 = 1;
@@ -125,7 +128,7 @@ void LoadSwitch(Load_Switch loadSwitch, int on)
 			{
 #ifdef _LAUNCH
 				//Turn GPIO Pin 90 on
-				GpioDataRegs.GPCDAT.bit.GPIO90 = 1;
+				GpioDataRegs.GPCSET.bit.GPIO90 = 1;
 				DELAY_US(5000);
 #else
 				//Turn GPIO Pin 44 on
@@ -137,11 +140,11 @@ void LoadSwitch(Load_Switch loadSwitch, int on)
 			{
 #ifdef _LAUNCH
 				//Turn GPIO Pin 90 off
-				GpioDataRegs.GPCDAT.bit.GPIO90 = 0;
+				GpioDataRegs.GPCCLEAR.bit.GPIO90 = 1;
 			 	DELAY_US(5000);
 #else
 				//Turn GPIO Pin 44 on
-				GpioDataRegs.GPBDAT.bit.GPIO44 = 0;
+				GpioDataRegs.GPBDAT.bit.GPIO44 = 1;
 				DELAY_US(5000);
 #endif
 			}//END ELSE
@@ -152,7 +155,7 @@ void LoadSwitch(Load_Switch loadSwitch, int on)
 			{
 #ifdef _LAUNCH
 				//Turn GPIO Pin 89 on
-				GpioDataRegs.GPCDAT.bit.GPIO89 = 1;
+				GpioDataRegs.GPCSET.bit.GPIO89 = 1;
 				DELAY_US(5000);
 #else
 				//Turn GPIO Pin 45 on
@@ -164,11 +167,11 @@ void LoadSwitch(Load_Switch loadSwitch, int on)
 			{
 #ifdef _LAUNCH
 				//Turn GPIO Pin 89 off
-				GpioDataRegs.GPCDAT.bit.GPIO89 = 0;
+				GpioDataRegs.GPCCLEAR.bit.GPIO89 = 1;
 			 	DELAY_US(5000);
 #else
 				//Turn GPIO Pin 45 on
-				GpioDataRegs.GPBDAT.bit.GPIO45 = 0;
+				GpioDataRegs.GPBDAT.bit.GPIO45 = 1;
 				DELAY_US(5000);
 #endif
 			}//END ELSE
@@ -180,7 +183,7 @@ void LoadSwitch(Load_Switch loadSwitch, int on)
 			{
 #ifdef _LAUNCH
 				//Turn GPIO Pin 71 on
-				GpioDataRegs.GPCDAT.bit.GPIO71 = 1;
+				GpioDataRegs.GPCSET.bit.GPIO71 = 1;
 				DELAY_US(5000);
 #else
 				//Turn GPIO Pin 48 on
@@ -192,11 +195,11 @@ void LoadSwitch(Load_Switch loadSwitch, int on)
 			{
 #ifdef _LAUNCH
 				//Turn GPIO Pin 71 off
-				GpioDataRegs.GPCDAT.bit.GPIO71 = 0;
+				GpioDataRegs.GPCCLEAR.bit.GPIO71 = 1;
 			 	DELAY_US(5000);
 #else
 				//Turn GPIO Pin 48 on
-				GpioDataRegs.GPBDAT.bit.GPIO48 = 0;
+				GpioDataRegs.GPBDAT.bit.GPIO48 = 1;
 				DELAY_US(5000);
 #endif
 			}//END ELSE
@@ -207,7 +210,7 @@ void LoadSwitch(Load_Switch loadSwitch, int on)
 			{
 #ifdef _LAUNCH
 				//Turn GPIO Pin 41 on
-				GpioDataRegs.GPBDAT.bit.GPIO41 = 1;
+				GpioDataRegs.GPBSET.bit.GPIO41 = 1;
 				DELAY_US(5000);
 #else
 				//Turn GPIO Pin 47 on
@@ -219,11 +222,11 @@ void LoadSwitch(Load_Switch loadSwitch, int on)
 			{
 #ifdef _LAUNCH
 				//Turn GPIO Pin 41 off
-				GpioDataRegs.GPBDAT.bit.GPIO41 = 0;
+				GpioDataRegs.GPBCLEAR.bit.GPIO41 = 1;
 			 	DELAY_US(5000);
 #else
 				//Turn GPIO Pin 47 on
-				GpioDataRegs.GPBDAT.bit.GPIO47 = 0;
+				GpioDataRegs.GPBDAT.bit.GPIO47 = 1;
 				DELAY_US(5000);
 #endif
 			}//END ELSE
@@ -234,7 +237,7 @@ void LoadSwitch(Load_Switch loadSwitch, int on)
 			{
 #ifdef _LAUNCH
 				//Turn GPIO Pin 60 on
-				GpioDataRegs.GPBDAT.bit.GPIO60 = 1;
+				GpioDataRegs.GPBSET.bit.GPIO60 = 1;
 				DELAY_US(5000);
 #else
 				//Turn GPIO Pin 67 on
@@ -246,11 +249,11 @@ void LoadSwitch(Load_Switch loadSwitch, int on)
 			{
 #ifdef _LAUNCH
 				//Turn GPIO Pin 60 off
-				GpioDataRegs.GPBDAT.bit.GPIO60 = 0;
+				GpioDataRegs.GPBCLEAR.bit.GPIO60 = 1;
 			 	DELAY_US(5000);
 #else
 				//Turn GPIO Pin 67 on
-				GpioDataRegs.GPCDAT.bit.GPIO67 = 0;
+				GpioDataRegs.GPCDAT.bit.GPIO67 = 1;
 				DELAY_US(5000);
 #endif
 			}//END ELSE
