@@ -46,9 +46,18 @@ void LoadSwitch(Load_Switch, int);
 void APSPieInit(void);
 interrupt void epwm2_isr(void);
 interrupt void realclock_isr(void);
+interrupt void epwm1_isr(void);
+interrupt void epwm3_isr(void);
 void systemBoot(void);
 void setTime(void);
 int addSeconds(int);
+void getTime(char* returnString);
+void voltageCurrent_Event(SPIKETYPE);
+void appendTime_EventCode(char*, int);
+void watchdog_Event();
+int LoadSwitch_Status(Load_Switch loadSwitch);
+void boot_Event();
+void critical_Power_Event();
 
 
 

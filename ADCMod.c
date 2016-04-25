@@ -107,10 +107,10 @@ void ADCInit(void)
 	//This line corresponds to the Hydrogen Fuel Cell input line.
 	//ADCINC4 will be used to measure the voltage on this line and ADCINA1 will be used
 	// to measure the current on this line.
+if(HYDRO_INPUT_VOLTAGE_COMPONENT)
+{
 	EALLOW;
-
 	///////////ADCINC4/SOC0 Values//////////////////////////////////////////
-
 	//SOC0 will convert pin ADCINC4.
 	AdccRegs.ADCSOC0CTL.bit.CHSEL = 0x4;
 	//SOC0 sample window is 26 SYSCLOCK cycles (~82ns).
@@ -129,9 +129,13 @@ void ADCInit(void)
 	AdccRegs.ADCINTSEL1N2.bit.INT1E = 0x1;
 	//Clear INT1 interrupt flag
 	AdccRegs.ADCINTFLGCLR.bit.ADCINT1 = 0x1;
+	EDIS;
+}//END IF
 
+if(HYDRO_INPUT_CURRENT_COMPONENT)
+{
+	EALLOW;
 	///////////ADCINA1/SOC0 Values//////////////////////////////////////////
-
 	//SOC0 will convert pin ADCINA1.
 	AdcaRegs.ADCSOC0CTL.bit.CHSEL = 0x1;
 	//SOC0 sample window is 26 SYSCLOCK cycles (~82ns).
@@ -150,15 +154,17 @@ void ADCInit(void)
 	AdcaRegs.ADCINTSEL1N2.bit.INT1E = 0x1;
 	//Clear INT1 interrupt flag
 	AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 0x1;
-
 	EDIS;
+}//END IF
 
 	//Initialize ADC modules to be used with 20V input line (Block N on System-Block Diagram).
 	//This line corresponds to the Solar input line.
 	//ADCINC2 will be used to measure the voltage on this line and ADCINA0 will be used
 	// to measure the current on this line.
-	EALLOW;
 
+if(SOLAR_INPUT_VOLTAGE_COMPONENT)
+{
+	EALLOW;
 	///////////ADCINC2/SOC1 Values//////////////////////////////////////////
 #ifndef _LAUNCH
 
@@ -182,192 +188,8 @@ void ADCInit(void)
 	AdccRegs.ADCINTFLGCLR.bit.ADCINT2 = 0x1;
 
 #else
-	///////////ADCINA2/SOC2 Values//////////////////////////////////////////
-
-	//SOC2 will convert pin ADCINA2.
-	AdcaRegs.ADCSOC2CTL.bit.CHSEL = 0x2;
-	//SOC2 sample window is 26 SYSCLOCK cycles (~82ns).
-	AdcaRegs.ADCSOC2CTL.bit.ACQPS = 0x22;
-	//Associate SOC2 with Post Processing Block (PPB) 3
-	AdcaRegs.ADCPPB3CONFIG.bit.CONFIG = 0x2;
-#ifdef _NO_VOLT_TEST
-	//Set SOC2 PPB offset correction to about .1V (ADCOut - 124)
-	AdcaRegs.ADCPPB3OFFREF = 0x7C;
-#else
-
-#endif
-	//End of conversion on SOC2 will set INT3 flag.
-	AdcaRegs.ADCINTSEL3N4.bit.INT3SEL = 0x2;
-	//Enable interrupt flag
-	AdcaRegs.ADCINTSEL3N4.bit.INT3E = 0x1;
-	//Clear INT3 interrupt flag
-	AdcaRegs.ADCINTFLGCLR.bit.ADCINT3 = 0x1;
-
-	EDIS;
-#endif
-
-
-	///////////ADCINA0/SOC1 Values//////////////////////////////////////////
-
-	//SOC1 will convert pin ADCINA0.
-	AdcaRegs.ADCSOC1CTL.bit.CHSEL = 0x0;
-	//SOC1 sample window is 26 SYSCLOCK cycles (~82ns).
-	AdcaRegs.ADCSOC1CTL.bit.ACQPS = 0x22;
-	//Associate SOC1 with Post Processing Block (PPB) 2
-	AdcaRegs.ADCPPB2CONFIG.bit.CONFIG = 0x1;
-#ifdef _NO_VOLT_TEST
-	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
-	AdcaRegs.ADCPPB2OFFREF = 0x7C;
-#else
-
-#endif
-	//End of conversion on SOC1 will set INT2 flag.
-	AdcaRegs.ADCINTSEL1N2.bit.INT2SEL = 0x1;
-	//Enable interrupt flag
-	AdcaRegs.ADCINTSEL1N2.bit.INT2E = 0x1;
-	//Clear INT2 interrupt flag
-	AdcaRegs.ADCINTFLGCLR.bit.ADCINT2 = 0x1;
-
-	EDIS;
-
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize ADC modules to be used with AC input line (Block B on System-Block Diagram).
-	//This line corresponds to the AC input line.
-	//ADCINB2 will be used to measure the voltage on this line and ADCINB1 will be used
-	// to measure the current on this line.
 	EALLOW;
-
-	///////////ADCINB2/SOC0 Values//////////////////////////////////////////
-
-	//SOC0 will convert pin ADCINB2.
-	AdcbRegs.ADCSOC0CTL.bit.CHSEL = 0x2;
-	//SOC0 sample window is 26 SYSCLOCK cycles (~82ns).
-	AdcbRegs.ADCSOC0CTL.bit.ACQPS = 0x22;
-	//Associate SOC0 with Post Processing Block (PPB) 1
-	AdcbRegs.ADCPPB1CONFIG.bit.CONFIG = 0x0;
-#ifdef _NO_VOLT_TEST
-	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
-	AdcaRegs.ADCPPB2OFFREF = 0x7C;
-#else
-	//Set SOC0 PPB offset correction to about .1V (ADCOut - 124)
-	AdcbRegs.ADCPPB1OFFREF = 0x7C;
-#endif
-	//End of conversion on SOC0 will set INT1 flag.
-	AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x0;
-	//Enable interrupt flag
-	AdcbRegs.ADCINTSEL1N2.bit.INT1E = 0x1;
-	//Clear INT1 interrupt flag
-	AdcbRegs.ADCINTFLGCLR.bit.ADCINT2 = 0x1;
-
-	///////////ADCINB1/SOC1 Values//////////////////////////////////////////
-
-	//SOC1 will convert pin ADCINB1.
-	AdcbRegs.ADCSOC1CTL.bit.CHSEL = 0x1;
-	//SOC1 sample window is 26 SYSCLOCK cycles (~82ns).
-	AdcbRegs.ADCSOC1CTL.bit.ACQPS = 0x22;
-	//Associate SOC1 with Post Processing Block (PPB) 2
-	AdcbRegs.ADCPPB2CONFIG.bit.CONFIG = 0x1;
-#ifdef _NO_VOLT_TEST
-	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
-	AdcbRegs.ADCPPB2OFFREF = 0x7C;
-#else
-
-#endif
-	//End of conversion on SOC1 will set INT2 flag.
-	AdcbRegs.ADCINTSEL1N2.bit.INT2SEL = 0x1;
-	//Enable interrupt flag
-	AdcbRegs.ADCINTSEL1N2.bit.INT2E = 0x1;
-	//Clear INT2 interrupt flag
-	AdcbRegs.ADCINTFLGCLR.bit.ADCINT2 = 0x1;
-
-	EDIS;
-
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize ADC modules to be used with Cap line (Block L on System-Block Diagram).
-	//This line corresponds to the line ahead of the Cap Bank.
-	//ADCIND2 will be used to measure the voltage on this line and ADCIND4 will be used
-	// to measure the current on this line.
-	EALLOW;
-
-	///////////ADCIND2/SOC0 Values//////////////////////////////////////////
-
-	//SOC0 will convert pin ADCIND2.
-	AdcdRegs.ADCSOC0CTL.bit.CHSEL = 0x2;
-	//SOC0 sample window is 26 SYSCLOCK cycles (~82ns).
-	AdcdRegs.ADCSOC0CTL.bit.ACQPS = 0x22;
-	//Associate SOC0 with Post Processing Block (PPB) 1
-	AdcdRegs.ADCPPB1CONFIG.bit.CONFIG = 0x0;
-#ifdef _NO_VOLT_TEST
-	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
-	AdcbRegs.ADCPPB2OFFREF = 0x7C;
-#else
-
-#endif
-	//End of conversion on SOC0 will set INT1 flag.
-	AdcdRegs.ADCINTSEL1N2.bit.INT1SEL = 0x0;
-	//Enable interrupt flag
-	AdcdRegs.ADCINTSEL1N2.bit.INT1E = 0x1;
-	//Clear INT1 interrupt flag
-	AdcdRegs.ADCINTFLGCLR.bit.ADCINT1 = 0x1;
-
-	///////////ADCIND4/SOC1 Values//////////////////////////////////////////
-
-	//SOC1 will convert pin ADCIND4.
-	AdcdRegs.ADCSOC1CTL.bit.CHSEL = 0x4;
-	//SOC1 sample window is 26 SYSCLOCK cycles (~82ns).
-	AdcdRegs.ADCSOC1CTL.bit.ACQPS = 0x22;
-	//Associate SOC1 with Post Processing Block (PPB) 2
-	AdcdRegs.ADCPPB2CONFIG.bit.CONFIG = 0x1;
-#ifdef _NO_VOLT_TEST
-	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
-	AdcdRegs.ADCPPB2OFFREF = 0x7C;
-#else
-
-#endif
-	//End of conversion on SOC1 will set INT2 flag.
-	AdcdRegs.ADCINTSEL1N2.bit.INT2SEL = 0x1;
-	//Enable interrupt flag
-	AdcdRegs.ADCINTSEL1N2.bit.INT2E = 0x1;
-	//Clear INT2 interrupt flag
-	AdcdRegs.ADCINTFLGCLR.bit.ADCINT2 = 0x1;
-
-	EDIS;
-
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize ADC modules to be used with 5V output line (Block E on System-Block Diagram).
-	//ADCINA2 will be used to measure the current on this line.
-	EALLOW;
-
-	///////////ADCINA2/SOC2 Values//////////////////////////////////////////
-
-	//SOC2 will convert pin ADCINA2.
-	AdcaRegs.ADCSOC2CTL.bit.CHSEL = 0x2;
-	//SOC2 sample window is 26 SYSCLOCK cycles (~82ns).
-	AdcaRegs.ADCSOC2CTL.bit.ACQPS = 0x22;
-	//Associate SOC2 with Post Processing Block (PPB) 3
-	AdcaRegs.ADCPPB3CONFIG.bit.CONFIG = 0x2;
-#ifdef _NO_VOLT_TEST
-	//Set SOC2 PPB offset correction to about .1V (ADCOut - 124)
-	AdcaRegs.ADCPPB3OFFREF = 0x7C;
-#else
-
-#endif
-	//End of conversion on SOC2 will set INT3 flag.
-	AdcaRegs.ADCINTSEL3N4.bit.INT3SEL = 0x2;
-	//Enable interrupt flag
-	AdcaRegs.ADCINTSEL3N4.bit.INT3E = 0x1;
-	//Clear INT3 interrupt flag
-	AdcaRegs.ADCINTFLGCLR.bit.ADCINT3 = 0x1;
-
-	EDIS;
-
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize ADC modules to be used with 12V output line (Block F on System-Block Diagram).
-	//ADCINA4 will be used to measure the current on this line.
-	EALLOW;
-
 	///////////ADCINA4/SOC3 Values//////////////////////////////////////////
-
 	//SOC3 will convert pin ADCINA4.
 	AdcaRegs.ADCSOC3CTL.bit.CHSEL = 0x4;
 	//SOC3 sample window is 26 SYSCLOCK cycles (~82ns).
@@ -387,8 +209,229 @@ void ADCInit(void)
 	AdcaRegs.ADCINTSEL3N4.bit.INT4E = 0x1;
 	//Clear INT2 interrupt flag
 	AdcaRegs.ADCINTFLGCLR.bit.ADCINT4 = 0x1;
-
 	EDIS;
+#endif
+}//END IF
+
+if(SOLAR_INPUT_CURRENT_COMPONENT)
+{
+	EALLOW;
+	///////////ADCINA0/SOC1 Values//////////////////////////////////////////
+	//SOC1 will convert pin ADCINA0.
+	AdcaRegs.ADCSOC1CTL.bit.CHSEL = 0x0;
+	//SOC1 sample window is 26 SYSCLOCK cycles (~82ns).
+	AdcaRegs.ADCSOC1CTL.bit.ACQPS = 0x22;
+	//Associate SOC1 with Post Processing Block (PPB) 2
+	AdcaRegs.ADCPPB2CONFIG.bit.CONFIG = 0x1;
+#ifdef _NO_VOLT_TEST
+	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
+	AdcaRegs.ADCPPB2OFFREF = 0x7C;
+#else
+
+#endif
+	//End of conversion on SOC1 will set INT2 flag.
+	AdcaRegs.ADCINTSEL1N2.bit.INT2SEL = 0x1;
+	//Enable interrupt flag
+	AdcaRegs.ADCINTSEL1N2.bit.INT2E = 0x1;
+	//Clear INT2 interrupt flag
+	AdcaRegs.ADCINTFLGCLR.bit.ADCINT2 = 0x1;
+	EDIS;
+}//END IF
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//Initialize ADC modules to be used with AC input line (Block B on System-Block Diagram).
+	//This line corresponds to the AC input line.
+	//ADCINB2 will be used to measure the voltage on this line and ADCINB1 will be used
+	// to measure the current on this line.
+if(AC_INPUT_VOLTAGE_COMPONENT)
+{
+	EALLOW;
+	///////////ADCINB2/SOC0 Values//////////////////////////////////////////
+	//SOC0 will convert pin ADCINB2.
+	AdcbRegs.ADCSOC0CTL.bit.CHSEL = 0x2;
+	//SOC0 sample window is 26 SYSCLOCK cycles (~82ns).
+	AdcbRegs.ADCSOC0CTL.bit.ACQPS = 0x22;
+	//Associate SOC0 with Post Processing Block (PPB) 1
+	AdcbRegs.ADCPPB1CONFIG.bit.CONFIG = 0x0;
+#ifdef _NO_VOLT_TEST
+	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
+	AdcaRegs.ADCPPB2OFFREF = 0x7C;
+#else
+	//Set SOC0 PPB offset correction to about .1V (ADCOut - 124)
+	AdcbRegs.ADCPPB1OFFREF = 0x7C;
+#endif
+	//End of conversion on SOC0 will set INT1 flag.
+	AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x0;
+	//Enable interrupt flag
+	AdcbRegs.ADCINTSEL1N2.bit.INT1E = 0x1;
+	//Clear INT1 interrupt flag
+	AdcbRegs.ADCINTFLGCLR.bit.ADCINT2 = 0x1;
+	EDIS;
+}//END IF
+
+if(AC_INPUT_CURRENT_COMPONENT)
+{
+	EALLOW;
+	///////////ADCINB1/SOC1 Values//////////////////////////////////////////
+	//SOC1 will convert pin ADCINB1.
+	AdcbRegs.ADCSOC1CTL.bit.CHSEL = 0x1;
+	//SOC1 sample window is 26 SYSCLOCK cycles (~82ns).
+	AdcbRegs.ADCSOC1CTL.bit.ACQPS = 0x22;
+	//Associate SOC1 with Post Processing Block (PPB) 2
+	AdcbRegs.ADCPPB2CONFIG.bit.CONFIG = 0x1;
+#ifdef _NO_VOLT_TEST
+	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
+	AdcbRegs.ADCPPB2OFFREF = 0x7C;
+#else
+
+#endif
+	//End of conversion on SOC1 will set INT2 flag.
+	AdcbRegs.ADCINTSEL1N2.bit.INT2SEL = 0x1;
+	//Enable interrupt flag
+	AdcbRegs.ADCINTSEL1N2.bit.INT2E = 0x1;
+	//Clear INT2 interrupt flag
+	AdcbRegs.ADCINTFLGCLR.bit.ADCINT2 = 0x1;
+	EDIS;
+}//END IF
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//Initialize ADC modules to be used with Cap line (Block L on System-Block Diagram).
+	//This line corresponds to the line ahead of the Cap Bank.
+	//ADCIND2 will be used to measure the voltage on this line and ADCIND4 will be used
+	// to measure the current on this line.
+if(CAP_VOLTAGE_COMPONENT)
+{
+#ifdef _LAUNCH
+	EALLOW;
+	///////////ADCIN14/SOC3 Values//////////////////////////////////////////
+	//SOC0 will convert pin ADCIN14.
+	AdcbRegs.ADCSOC3CTL.bit.CHSEL = 0xE;
+	//SOC0 sample window is 26 SYSCLOCK cycles (~82ns).
+	AdcbRegs.ADCSOC3CTL.bit.ACQPS = 0x22;
+	//Associate SOC4 with Post Processing Block (PPB) 3
+	AdcbRegs.ADCPPB3CONFIG.bit.CONFIG = 0x3;
+#ifdef _NO_VOLT_TEST
+	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
+	AdcbRegs.ADCPPB2OFFREF = 0x7C;
+#else
+
+#endif
+	//End of conversion on SOC3 will set INT3 flag.
+	AdcbRegs.ADCINTSEL3N4.bit.INT3SEL = 0x3;
+	//Enable interrupt flag
+	AdcbRegs.ADCINTSEL3N4.bit.INT3E = 0x1;
+	//Clear INT3 interrupt flag
+	AdcbRegs.ADCINTFLGCLR.bit.ADCINT3 = 0x1;
+	EDIS;
+#else
+	EALLOW;
+	///////////ADCIND2/SOC0 Values//////////////////////////////////////////
+	//SOC0 will convert pin ADCIND2.
+	AdcdRegs.ADCSOC0CTL.bit.CHSEL = 0x2;
+	//SOC0 sample window is 26 SYSCLOCK cycles (~82ns).
+	AdcdRegs.ADCSOC0CTL.bit.ACQPS = 0x22;
+	//Associate SOC0 with Post Processing Block (PPB) 1
+	AdcdRegs.ADCPPB1CONFIG.bit.CONFIG = 0x0;
+#ifdef _NO_VOLT_TEST
+	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
+	AdcbRegs.ADCPPB2OFFREF = 0x7C;
+#else
+
+#endif
+	//End of conversion on SOC0 will set INT1 flag.
+	AdcdRegs.ADCINTSEL1N2.bit.INT1SEL = 0x0;
+	//Enable interrupt flag
+	AdcdRegs.ADCINTSEL1N2.bit.INT1E = 0x1;
+	//Clear INT1 interrupt flag
+	AdcdRegs.ADCINTFLGCLR.bit.ADCINT1 = 0x1;
+	EDIS;
+#endif
+}//END IF
+
+if(CAP_CURRENT_COMPONENT)
+{
+	EALLOW;
+	///////////ADCIND4/SOC1 Values//////////////////////////////////////////
+	//SOC1 will convert pin ADCIND4.
+	AdcdRegs.ADCSOC1CTL.bit.CHSEL = 0x4;
+	//SOC1 sample window is 26 SYSCLOCK cycles (~82ns).
+	AdcdRegs.ADCSOC1CTL.bit.ACQPS = 0x22;
+	//Associate SOC1 with Post Processing Block (PPB) 2
+	AdcdRegs.ADCPPB2CONFIG.bit.CONFIG = 0x1;
+#ifdef _NO_VOLT_TEST
+	//Set SOC1 PPB offset correction to about .1V (ADCOut - 124)
+	AdcdRegs.ADCPPB2OFFREF = 0x7C;
+#else
+
+#endif
+	//End of conversion on SOC1 will set INT2 flag.
+	AdcdRegs.ADCINTSEL1N2.bit.INT2SEL = 0x1;
+	//Enable interrupt flag
+	AdcdRegs.ADCINTSEL1N2.bit.INT2E = 0x1;
+	//Clear INT2 interrupt flag
+	AdcdRegs.ADCINTFLGCLR.bit.ADCINT2 = 0x1;
+	EDIS;
+}//END IF
+
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//Initialize ADC modules to be used with 5V output line (Block E on System-Block Diagram).
+	//ADCINA2 will be used to measure the current on this line.
+if(FIVEV_OUTPUT_CURRENT_COMPONENT)
+{
+	EALLOW;
+	///////////ADCINA2/SOC2 Values//////////////////////////////////////////
+	//SOC2 will convert pin ADCINA2.
+	AdcaRegs.ADCSOC2CTL.bit.CHSEL = 0x2;
+	//SOC2 sample window is 26 SYSCLOCK cycles (~82ns).
+	AdcaRegs.ADCSOC2CTL.bit.ACQPS = 0x22;
+	//Associate SOC2 with Post Processing Block (PPB) 3
+	AdcaRegs.ADCPPB3CONFIG.bit.CONFIG = 0x2;
+#ifdef _NO_VOLT_TEST
+	//Set SOC2 PPB offset correction to about .1V (ADCOut - 124)
+	AdcaRegs.ADCPPB3OFFREF = 0x7C;
+#else
+
+#endif
+	//End of conversion on SOC2 will set INT3 flag.
+	AdcaRegs.ADCINTSEL3N4.bit.INT3SEL = 0x2;
+	//Enable interrupt flag
+	AdcaRegs.ADCINTSEL3N4.bit.INT3E = 0x1;
+	//Clear INT3 interrupt flag
+	AdcaRegs.ADCINTFLGCLR.bit.ADCINT3 = 0x1;
+	EDIS;
+}//END IF
+
+#ifndef _LAUNCH
+	/////////////////////////////////////////////////////////////////////////////////////////
+	//Initialize ADC modules to be used with 12V output line (Block F on System-Block Diagram).
+	//ADCINA4 will be used to measure the current on this line.
+if(TWELVEV_OUTPUT_CURRENT_COMPONENT)
+{
+	EALLOW;
+	///////////ADCINA4/SOC3 Values//////////////////////////////////////////
+	//SOC3 will convert pin ADCINA4.
+	AdcaRegs.ADCSOC3CTL.bit.CHSEL = 0x4;
+	//SOC3 sample window is 26 SYSCLOCK cycles (~82ns).
+	AdcaRegs.ADCSOC3CTL.bit.ACQPS = 0x22;
+	//Associate SOC3 with Post Processing Block (PPB) 4
+	AdcaRegs.ADCPPB4CONFIG.bit.CONFIG = 0x3;
+#ifdef _NO_VOLT_TEST
+	//Set SOC2 PPB offset correction to about .1V (ADCOut - 124)
+	AdcaRegs.ADCPPB3OFFREF = 0x7C;
+#else
+	//Set SOC3 PPB offset correction to about .1V (ADCOut - 124)
+	AdcaRegs.ADCPPB4OFFREF = 0x7C;
+#endif
+	//End of conversion on SOC3 will set INT4 flag.
+	AdcaRegs.ADCINTSEL3N4.bit.INT4SEL = 0x3;
+	//Enable interrupt flag
+	AdcaRegs.ADCINTSEL3N4.bit.INT4E = 0x1;
+	//Clear INT2 interrupt flag
+	AdcaRegs.ADCINTFLGCLR.bit.ADCINT4 = 0x1;
+	EDIS;
+}//END IF
+#endif
+
 
 
 }//END FUNCTION
@@ -415,137 +458,204 @@ int16_t sampleADC(ADC_Selection ADCModule)
 		switch (ADCModule)
 			{
 				case HYDRO_VOLT://ADCINC4/SOC0/PPB1/INT1
-					//Force start of conversion on SOC1
-					AdccRegs.ADCSOCFRC1.bit.SOC0 = 0x01;
+					if(HYDRO_INPUT_VOLTAGE_COMPONENT)
+					{
+						//Force start of conversion on SOC1
+						AdccRegs.ADCSOCFRC1.bit.SOC0 = 0x01;
 
-					//Wait for end of conversion.
-					while(AdccRegs.ADCINTFLG.bit.ADCINT1 == 0){}  //Wait for ADCINT1
-					AdccRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;        //Clear ADCINT1
+						//Wait for end of conversion.
+						while(AdccRegs.ADCINTFLG.bit.ADCINT1 == 0){}  //Wait for ADCINT1
+						AdccRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;        //Clear ADCINT1
 
-					//Get ADC sample result from SOC1
-					sample = AdcaResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
-
+						//Get ADC sample result from SOC1
+						sample = AdcaResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
 					break;
 				case HYDRO_CUR://ADCINA1/SOC0/PPB1/INT2
-					//Force start of conversion on SOC0
-					AdcaRegs.ADCSOCFRC1.bit.SOC0 = 0x01;
+					if(HYDRO_INPUT_CURRENT_COMPONENT)
+					{
+						//Force start of conversion on SOC0
+						AdcaRegs.ADCSOCFRC1.bit.SOC0 = 0x01;
 
-					//Wait for end of conversion.
-					while(AdcaRegs.ADCINTFLG.bit.ADCINT2 == 0){}  //Wait for ADCINT2
-					AdcaRegs.ADCINTFLGCLR.bit.ADCINT2 = 1;        //Clear ADCINT2
+						//Wait for end of conversion.
+						while(AdcaRegs.ADCINTFLG.bit.ADCINT2 == 0){}  //Wait for ADCINT2
+						AdcaRegs.ADCINTFLGCLR.bit.ADCINT2 = 1;        //Clear ADCINT2
 
-					//Get ADC sample result from SOC0
-					sample = AdcaResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
-
+						//Get ADC sample result from SOC0
+						sample = AdcaResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
 					break;
 #ifndef _LAUNCH
 				case SOL_VOLT://ADCINC2/SOC1/PPB2/INT2
-					//Force start of conversion on SOC1
-					AdccRegs.ADCSOCFRC1.bit.SOC1 = 0x01;
+					if(SOLAR_INPUT_VOLTAGE_COMPONENT)
+					{
+						//Force start of conversion on SOC1
+						AdccRegs.ADCSOCFRC1.bit.SOC1 = 0x01;
 
-					//Wait for end of conversion.
-					while(AdccRegs.ADCINTFLG.bit.ADCINT2 == 0){}  //Wait for ADCINT2
-					AdccRegs.ADCINTFLGCLR.bit.ADCINT2 = 1;        //Clear ADCINT2
+						//Wait for end of conversion.
+						while(AdccRegs.ADCINTFLG.bit.ADCINT2 == 0){}  //Wait for ADCINT2
+						AdccRegs.ADCINTFLGCLR.bit.ADCINT2 = 1;        //Clear ADCINT2
 
-					//Get ADC sample result from SOC1
-					sample = AdccResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
-
+						//Get ADC sample result from SOC1
+						sample = AdccResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
 					break;
 #else
-				case SOL_VOLT://ADCINA4/SOC3/PPB/INT4
-					//Force start of conversion on SOC3
-					AdcaRegs.ADCSOCFRC1.bit.SOC3 = 0x01;
+				case SOL_VOLT://ADCINA4/SOC2/PPB3/INT3
+					if(SOLAR_INPUT_VOLTAGE_COMPONENT)
+					{
+						//Force start of conversion on SOC3
+						AdcaRegs.ADCSOCFRC1.bit.SOC3 = 0x01;
 
-					//Wait for end of conversion.
-					while(AdcaRegs.ADCINTFLG.bit.ADCINT4 == 0){}  //Wait for ADCINT4
-					AdcaRegs.ADCINTFLGCLR.bit.ADCINT4 = 1;        //Clear ADCINT4
+						//Wait for end of conversion.
+						while(AdcaRegs.ADCINTFLG.bit.ADCINT4 == 0){}  //Wait for ADCINT4
+						AdcaRegs.ADCINTFLGCLR.bit.ADCINT4 = 1;        //Clear ADCINT4
 
-					//Get ADC sample result from SOC3
-					sample = AdcaResultRegs.ADCPPB4RESULT.bit.PPBRESULT + sample;
-
+						//Get ADC sample result from SOC3
+						sample = AdcaResultRegs.ADCPPB4RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
 					break;
 #endif
 
 				case SOL_CUR://ADCINA0/SOC1/PPB2/INT2
-					//Force start of conversion on SOC0
-					AdcaRegs.ADCSOCFRC1.bit.SOC1 = 0x01;
+					if(SOLAR_INPUT_CURRENT_COMPONENT)
+					{
+						//Force start of conversion on SOC0
+						AdcaRegs.ADCSOCFRC1.bit.SOC1 = 0x01;
 
-					//Wait for end of conversion.
-					while(AdcaRegs.ADCINTFLG.bit.ADCINT2 == 0){}  //Wait for ADCINT2
-					AdcaRegs.ADCINTFLGCLR.bit.ADCINT2 = 1;        //Clear ADCINT2
+						//Wait for end of conversion.
+						while(AdcaRegs.ADCINTFLG.bit.ADCINT2 == 0){}  //Wait for ADCINT2
+						AdcaRegs.ADCINTFLGCLR.bit.ADCINT2 = 1;        //Clear ADCINT2
 
-					//Get ADC sample result from SOC0
-					sample = AdcaResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
+						//Get ADC sample result from SOC0
+						sample = AdcaResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
 					break;
 				case AC_VOLT://ADCINB2/SOC0/PPB1/INT1
-					//Force start of conversion on SOC0
-					AdcbRegs.ADCSOCFRC1.bit.SOC0 = 0x01;
+					if(AC_INPUT_VOLTAGE_COMPONENT)
+					{
+						//Force start of conversion on SOC0
+						AdcbRegs.ADCSOCFRC1.bit.SOC0 = 0x01;
 
-					//Wait for end of conversion.
-					while(AdcbRegs.ADCINTFLG.bit.ADCINT1 == 0){}  //Wait for ADCINT1
-					AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;        //Clear ADCINT1
+						//Wait for end of conversion.
+						while(AdcbRegs.ADCINTFLG.bit.ADCINT1 == 0){}  //Wait for ADCINT1
+						AdcbRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;        //Clear ADCINT1
 
-					//Get ADC sample result from SOC0
-					sample = AdcbResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
+						//Get ADC sample result from SOC0
+						sample = AdcbResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
 					break;
 				case AC_CUR://ADCINB1/SOC1/PPB2/INT2
-					//Force start of conversion on SOC1
-					AdcbRegs.ADCSOCFRC1.bit.SOC1 = 0x01;
+					if(AC_INPUT_CURRENT_COMPONENT)
+					{
+						//Force start of conversion on SOC1
+						AdcbRegs.ADCSOCFRC1.bit.SOC1 = 0x01;
 
-					//Wait for end of conversion.
-					while(AdcbRegs.ADCINTFLG.bit.ADCINT2 == 0){}  //Wait for ADCINT2
-					AdcbRegs.ADCINTFLGCLR.bit.ADCINT2 = 1;        //Clear ADCINT2
+						//Wait for end of conversion.
+						while(AdcbRegs.ADCINTFLG.bit.ADCINT2 == 0){}  //Wait for ADCINT2
+						AdcbRegs.ADCINTFLGCLR.bit.ADCINT2 = 1;        //Clear ADCINT2
 
-					//Get ADC sample result from SOC1
-					sample = AdcbResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
+						//Get ADC sample result from SOC1
+						sample = AdcbResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
 					break;
+#ifdef _LAUNCH
+				case CAP_VOLT://ADCINB14/SOC3/PPB3/INT3
+					if(CAP_VOLTAGE_COMPONENT)
+					{
+						//Force start of conversion on SOC3
+						AdcdRegs.ADCSOCFRC1.bit.SOC3 = 0x01;
+
+						//Wait for end of conversion.
+						while(AdcdRegs.ADCINTFLG.bit.ADCINT3 == 0){}  //Wait for ADCINT1
+						AdcdRegs.ADCINTFLGCLR.bit.ADCINT3 = 1;        //Clear ADCINT1
+
+						//Get ADC sample result from SOC3
+						sample = AdcdResultRegs.ADCPPB3RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
+					break;
+#else
 				case CAP_VOLT://ADCIND2/SOC0/PPB1/INT1
-					//Force start of conversion on SOC0
-					AdcdRegs.ADCSOCFRC1.bit.SOC0 = 0x01;
+					if(CAP_CURRENT_COMPONENT)
+					{
+						//Force start of conversion on SOC0
+						AdcdRegs.ADCSOCFRC1.bit.SOC0 = 0x01;
 
-					//Wait for end of conversion.
-					while(AdcdRegs.ADCINTFLG.bit.ADCINT1 == 0){}  //Wait for ADCINT1
-					AdcdRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;        //Clear ADCINT1
+						//Wait for end of conversion.
+						while(AdcdRegs.ADCINTFLG.bit.ADCINT1 == 0){}  //Wait for ADCINT1
+						AdcdRegs.ADCINTFLGCLR.bit.ADCINT1 = 1;        //Clear ADCINT1
 
-					//Get ADC sample result from SOC0
-					sample = AdcdResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
-
+						//Get ADC sample result from SOC0
+						sample = AdcdResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
 					break;
+#endif
+
 				case CAP_CUR://ADCIND4/SOC1/PPB2/INT2
-					//Force start of conversion on SOC1
-					AdcdRegs.ADCSOCFRC1.bit.SOC1 = 0x01;
+					if(CAP_CURRENT_COMPONENT)
+					{
+						//Force start of conversion on SOC1
+						AdcdRegs.ADCSOCFRC1.bit.SOC1 = 0x01;
 
-					//Wait for end of conversion.
-					while(AdcdRegs.ADCINTFLG.bit.ADCINT2 == 0){}  //Wait for ADCINT2
-					AdcdRegs.ADCINTFLGCLR.bit.ADCINT2 = 1;        //Clear ADCINT2
+						//Wait for end of conversion.
+						while(AdcdRegs.ADCINTFLG.bit.ADCINT2 == 0){}  //Wait for ADCINT2
+						AdcdRegs.ADCINTFLGCLR.bit.ADCINT2 = 1;        //Clear ADCINT2
 
-					//Get ADC sample result from SOC1
-					sample = AdcdResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
-
+						//Get ADC sample result from SOC1
+						sample = AdcdResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
 					break;
 				case FIVEV_CUR://ADCINA2/SOC2/PPB3/INT3
-					//Force start of conversion on SOC2
-					AdcaRegs.ADCSOCFRC1.bit.SOC2 = 0x01;
+					if(FIVEV_OUTPUT_CURRENT_COMPONENT)
+					{
+						//Force start of conversion on SOC2
+						AdcaRegs.ADCSOCFRC1.bit.SOC2 = 0x01;
 
-					//Wait for end of conversion.
-					while(AdcaRegs.ADCINTFLG.bit.ADCINT3 == 0){}  //Wait for ADCINT3
-					AdcaRegs.ADCINTFLGCLR.bit.ADCINT3 = 1;        //Clear ADCINT3
+						//Wait for end of conversion.
+						while(AdcaRegs.ADCINTFLG.bit.ADCINT3 == 0){}  //Wait for ADCINT3
+						AdcaRegs.ADCINTFLGCLR.bit.ADCINT3 = 1;        //Clear ADCINT3
 
-					//Get ADC sample result from SOC2
-					sample = AdcaResultRegs.ADCPPB3RESULT.bit.PPBRESULT + sample;
-
+						//Get ADC sample result from SOC2
+						sample = AdcaResultRegs.ADCPPB3RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
 					break;
 				case TWELVEV_CUR://ADCINA4/SOC3/PPB/INT4
-					//Force start of conversion on SOC3
-					AdcaRegs.ADCSOCFRC1.bit.SOC3 = 0x01;
+					if(TWELVEV_OUTPUT_CURRENT_COMPONENT)
+					{
+						//Force start of conversion on SOC3
+						AdcaRegs.ADCSOCFRC1.bit.SOC3 = 0x01;
 
-					//Wait for end of conversion.
-					while(AdcaRegs.ADCINTFLG.bit.ADCINT4 == 0){}  //Wait for ADCINT4
-					AdcaRegs.ADCINTFLGCLR.bit.ADCINT4 = 1;        //Clear ADCINT4
+						//Wait for end of conversion.
+						while(AdcaRegs.ADCINTFLG.bit.ADCINT4 == 0){}  //Wait for ADCINT4
+						AdcaRegs.ADCINTFLGCLR.bit.ADCINT4 = 1;        //Clear ADCINT4
 
-					//Get ADC sample result from SOC3
-					sample = AdcaResultRegs.ADCPPB4RESULT.bit.PPBRESULT + sample;
-
+						//Get ADC sample result from SOC3
+						sample = AdcaResultRegs.ADCPPB4RESULT.bit.PPBRESULT + sample;
+					}
+					else
+						sample = 0;
 					break;
 			}//END SWITCH
 	}//END FOR
@@ -554,6 +664,9 @@ int16_t sampleADC(ADC_Selection ADCModule)
 	finalVal = (int16_t)(sample/SAMPLEAVG);
 
     EDIS;
+
+    if(finalVal < 0)
+    	finalVal = 0;
 
     //Return the raw temperature because the devices don't have slope/offset values
     return(finalVal);
@@ -574,7 +687,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 void convertADC(int16_t adcVal, ADC_Selection ADCModule, char* returnString)
 {
 	float convVal = 0, finalVal = 0, decHalfFloat;
-	int intAdcVal = (int)adcVal, intHalf, decHalfInt;
+	int intAdcVal = (int)adcVal, intHalf, decHalfInt, moduleConnected = 1;
 
 
 	//Divide the intput value by the correct resolution (2^12 or 2^16)
@@ -583,71 +696,154 @@ void convertADC(int16_t adcVal, ADC_Selection ADCModule, char* returnString)
 	else
 		convVal = adcVal/ 65536;
 
-	//Multiply it by reference voltage ~3.3V (VDDA)
-#ifdef _NO_VOLT_TEST
-	finalVal = convVal * VDDA;
-#else
 	//Select the correct reference voltage constant
 	switch (ADCModule)
 		{
 			case HYDRO_VOLT://ADCINC4/~3.3V
-				finalVal = convVal * VREFHI_HYDRO_VOLT;
+				if(HYDRO_INPUT_VOLTAGE_COMPONENT)
+				{
+#ifdef _NO_VOLT_TEST
+					//Multiply it by reference voltage ~3.3V (VDDA)
+					finalVal = convVal * VDDA;
+#else
+					finalVal = convVal * VREFHI_HYDRO_VOLT;
+#endif
+				}
+				else
+					moduleConnected = 0;
 				break;
 			case HYDRO_CUR://ADCINA1/~3.3V
-				finalVal = convVal * VREFHI_HYDRO_CUR;
+				if(HYDRO_INPUT_CURRENT_COMPONENT)
+				{
+#ifdef _NO_VOLT_TEST
+					//Multiply it by reference voltage ~3.3V (VDDA)
+					finalVal = convVal * VDDA;
+#else
+					finalVal = convVal * VREFHI_HYDRO_CUR;
+#endif
+				}
 				//NOTE: ADD Current Conversions
 				break;
 			case SOL_VOLT://ADCINC2/~3.3V
-				finalVal = convVal * VREFHI_SOL_VOLT;
+				if(SOLAR_INPUT_VOLTAGE_COMPONENT)
+				{
+#ifdef _NO_VOLT_TEST
+					//Multiply it by reference voltage ~3.3V (VDDA)
+					finalVal = convVal * VDDA;
+#else
+					finalVal = convVal * VREFHI_SOL_VOLT;
+#endif
+				}
+				else
+					moduleConnected = 0;
 				break;
 			case SOL_CUR://ADCINA0/~3.3V
-				finalVal = convVal * VREFHI_SOL_CUR;
+				if(SOLAR_INPUT_CURRENT_COMPONENT)
+				{
+#ifdef _NO_VOLT_TEST
+					//Multiply it by reference voltage ~3.3V (VDDA)
+					finalVal = convVal * VDDA;
+#else
+					finalVal = convVal * VREFHI_SOL_CUR;
+#endif
+				}
 				//NOTE: ADD Current Conversions
 				break;
 			case AC_VOLT://ADCINB2/~3.3V
-				finalVal = convVal * VREFHI_AC_VOLT;
+				if(AC_INPUT_VOLTAGE_COMPONENT)
+				{
+#ifdef _NO_VOLT_TEST
+					//Multiply it by reference voltage ~3.3V (VDDA)
+					finalVal = convVal * VDDA;
+#else
+					finalVal = convVal * VREFHI_AC_VOLT;
+#endif
+				}
+				else
+					moduleConnected = 0;
 				break;
 			case AC_CUR://ADCINB1/~3.3V
-				finalVal = convVal * VREFHI_AC_CUR;
+				if(AC_INPUT_CURRENT_COMPONENT)
+				{
+#ifdef _NO_VOLT_TEST
+					//Multiply it by reference voltage ~3.3V (VDDA)
+					finalVal = convVal * VDDA;
+#else
+					finalVal = convVal * VREFHI_AC_CUR;
+#endif
+				}
 				//NOTE: ADD Current Conversions
 				break;
 			case CAP_VOLT://ADCIND2/~3.3V
-				finalVal = convVal * VREFHI_CAP_VOLT;
+				if(CAP_VOLTAGE_COMPONENT)
+				{
+#ifdef _NO_VOLT_TEST
+					//Multiply it by reference voltage ~3.3V (VDDA)
+					finalVal = convVal * VDDA;
+#else
+					finalVal = convVal * VREFHI_CAP_VOLT;
+#endif
+				}
+				else
+					moduleConnected = 0;
 				break;
 			case CAP_CUR://ADCIND4/~3.3V
 				finalVal = convVal * VREFHI_CAP_CUR;
 				//NOTE: ADD Current Conversions
 				break;
 			case FIVEV_CUR://ADCINA2/~3.3V
-				finalVal = convVal * VREFHI_FIVEV_CUR;
-				//NOTE: ADD Current Conversions
+				if(FIVEV_OUTPUT_CURRENT_COMPONENT)
+				{
+					//NOTE: ADD Current Conversions
+#ifdef _NO_VOLT_TEST
+					//Multiply it by reference voltage ~3.3V (VDDA)
+					finalVal = convVal * VDDA;
+#else
+					finalVal = convVal * VREFHI_FIVEV_CUR;
+#endif
+				}
+				else
+					moduleConnected = 0;
 				break;
 			case TWELVEV_CUR://ADCINA4/~3.3V
-				finalVal = convVal * VREFHI_TWELVE_CUR;
-				//NOTE: ADD Current Conversions
+				if(TWELVEV_OUTPUT_CURRENT_COMPONENT)
+				{
+					//NOTE: ADD Current Conversions
+#ifdef _NO_VOLT_TEST
+					//Multiply it by reference voltage ~3.3V (VDDA)
+					finalVal = convVal * VDDA;
+#else
+					finalVal = convVal * VREFHI_TWELVE_CUR;
+#endif
+				}
+				else
+					moduleConnected = 0;
 				break;
 		}//END SWITCH
-	finalVal = convVal * VREFHIB_PROD;
-#endif
 
-	//Convert float to integer to obtain integer portion of results
-	intHalf = finalVal;
-	//Obtain decimal part by removing integer portion
-	decHalfFloat = finalVal - intHalf;
-	//Scale the decimal portion to be within 4 digits past decimal point
-	decHalfFloat = decHalfFloat * 10000;
-	//Remove remaining decimal portion digits
-	decHalfInt = decHalfFloat;
+	if(moduleConnected)
+	{
+		//Convert float to integer to obtain integer portion of results
+		intHalf = finalVal;
+		//Obtain decimal part by removing integer portion
+		decHalfFloat = finalVal - intHalf;
+		//Scale the decimal portion to be within 4 digits past decimal point
+		decHalfFloat = decHalfFloat * 10000;
+		//Remove remaining decimal portion digits
+		decHalfInt = decHalfFloat;
 
-	//Depending on the size of the decimal portion create a string with the correct number of leading zeros
-	if(decHalfInt > 1000)
-		sprintf(returnString, "%d.%d",intHalf,decHalfInt);
-	else if(decHalfInt < 1000 & decHalfInt > 100)
-		sprintf(returnString, "%d.0%d",intHalf,decHalfInt);
-	else if(decHalfInt < 100 & decHalfInt > 10)
-		sprintf(returnString, "%d.00%d",intHalf,decHalfInt);
+		//Depending on the size of the decimal portion create a string with the correct number of leading zeros
+		if(decHalfInt > 1000)
+			sprintf(returnString, "%d.%d",intHalf,decHalfInt);
+		else if(decHalfInt < 1000 & decHalfInt > 100)
+			sprintf(returnString, "%d.0%d",intHalf,decHalfInt);
+		else if(decHalfInt < 100 & decHalfInt > 10)
+			sprintf(returnString, "%d.00%d",intHalf,decHalfInt);
+		else
+			sprintf(returnString, "%d.000%d",intHalf,decHalfInt);
+	}
 	else
-		sprintf(returnString, "%d.000%d",intHalf,decHalfInt);
+		sprintf(returnString,"N/A");
 
 	//Output final formatted string as IntegerPortion.(LeadingZeros)DecimalPortion
     return;

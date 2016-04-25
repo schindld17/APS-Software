@@ -32,6 +32,7 @@ char second[2];
 JULIANTIME julianTime;
 
 
+
 void InitSysCtrl(void);
 
 int main(void)
@@ -81,12 +82,11 @@ int main(void)
     EPWMInit();
 
     initsci();
-
+if(AC_INPUT_VOLTAGE_COMPONENT | SOLAR_INPUT_VOLTAGE_COMPONENT)
     systemBoot();
 
     RClock_ePWMInit();
 
-    APSPieInit();
 
 #ifndef _INT_ON
     // Enable global Interrupts and higher priority real-time debug events:
@@ -94,18 +94,14 @@ int main(void)
     ERTM;   // Enable Global realtime interrupt DBGM
 #else
     //Initialize custom PIE Interrupt Mappings
-    //APSPieInit();
+    APSPieInit();
 #endif
+
+    boot_Event();
 
 #ifdef _INT_TEST
     while(1)
-
     {
-    	//LoadSwitch(SOL_LOAD, LOAD_CLOSED);
-    	//DELAY_US(500000);
-    	//LoadSwitch(SOL_LOAD, LOAD_OPEN);
-    	//DELAY_US(500000);
-
         asm ("          NOP");
     }
 #endif
@@ -124,7 +120,7 @@ while(1)
 
 void systemBoot(void)
 {
-	int16_t ACAdc, SolAdc, HydoAdc;
+	int16_t ACAdc, SolAdc;
 
 	//Check to see if AC Input or Solar Input has power
 	ACAdc = sampleADC(AC_VOLT);
@@ -138,16 +134,15 @@ void systemBoot(void)
 		//If Solar has power turn off other loads and use only Solar
 		if(SolAdc > 100)
 		{
-			LoadSwitch(SOL_LOAD, LOAD_OPEN);
-			LoadSwitch(AC_LOAD, LOAD_CLOSED);
-			LoadSwitch(HYDRO_LOAD, LOAD_CLOSED);
-			//NOTE: NEED HYDRO_SWITCH
+			LoadSwitch((Load_Switch)SOL_LOAD, LOAD_OPEN);
+			LoadSwitch((Load_Switch)AC_LOAD, LOAD_CLOSED);
+			LoadSwitch((Load_Switch)HYDRO_LOAD, LOAD_CLOSED);
 		}
 		else
 		{
-			LoadSwitch(SOL_LOAD, LOAD_CLOSED);
-			LoadSwitch(AC_LOAD, LOAD_OPEN);
-			LoadSwitch(HYDRO_LOAD, LOAD_CLOSED);
+			LoadSwitch((Load_Switch)SOL_LOAD, LOAD_CLOSED);
+			LoadSwitch((Load_Switch)AC_LOAD, LOAD_OPEN);
+			LoadSwitch((Load_Switch)HYDRO_LOAD, LOAD_CLOSED);
 		}
 		return;
 

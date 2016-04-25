@@ -39,7 +39,7 @@ void GPIOInit(void)
 	//Initialize GPIO Pin 90 as output
 	GpioCtrlRegs.GPCDIR.bit.GPIO90 = 1;
 	//Turn on GPIO Pin 90 (Open Load Switch)
-	LoadSwitch(HYDRO_LOAD, LOAD_OPEN);
+	LoadSwitch((Load_Switch)HYDRO_LOAD, LOAD_OPEN);
 #else
 	//Initialize GPIO Pin 44 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO44 = 1;
@@ -53,7 +53,7 @@ void GPIOInit(void)
 	//Initialize GPIO Pin 89 as output
 	GpioCtrlRegs.GPCDIR.bit.GPIO89 = 1;
 	//Turn on GPIO Pin 89 (Open Load Switch)
-	LoadSwitch(SOL_LOAD, LOAD_OPEN);
+	LoadSwitch((Load_Switch)SOL_LOAD, LOAD_OPEN);
 #else
 	//Initialize GPIO Pin 45 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO45 = 1;
@@ -67,7 +67,7 @@ void GPIOInit(void)
 	//Initialize GPIO Pin 71 as output
 	GpioCtrlRegs.GPCDIR.bit.GPIO71 = 1;
 	//Turn on GPIO Pin 71 (Open Load Switch)
-	LoadSwitch(AC_LOAD, LOAD_OPEN);
+	LoadSwitch((Load_Switch)AC_LOAD, LOAD_OPEN);
 #else
 	//Initialize GPIO Pin 48 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO48 = 1;
@@ -81,7 +81,7 @@ void GPIOInit(void)
 	//Initialize GPIO Pin 41 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO41 = 1;
 	//Turn on GPIO Pin 41 (Open Load Switch)
-	LoadSwitch(FIVE_LOAD, LOAD_OPEN);
+	LoadSwitch((Load_Switch)FIVE_LOAD, LOAD_OPEN);
 #else
 	//Initialize GPIO Pin 47 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO47 = 1;
@@ -95,7 +95,7 @@ void GPIOInit(void)
 	//Initialize GPIO Pin 60 as output
 	GpioCtrlRegs.GPBDIR.bit.GPIO60 = 1;
 	//Turn on GPIO Pin 60 (Open Load Switch)
-	LoadSwitch(TWELVE_LOAD, LOAD_OPEN);
+	LoadSwitch((Load_Switch)TWELVE_LOAD, LOAD_OPEN);
 #else
 	//Initialize GPIO Pin 67 as output
 	GpioCtrlRegs.GPCDIR.bit.GPIO67 = 1;
@@ -264,6 +264,99 @@ void LoadSwitch(Load_Switch loadSwitch, int on)
 
 }//END FUNCTION
 
+//*************************************************************************************************************************
+//NAME: LoadSwitch_Status
+//
+//DESC:
+//
+//DATE: 24 April 2016
+//
+//AUTHOR: Dylan Schindler
+//*************************************************************************************************************************
+int LoadSwitch_Status(Load_Switch loadSwitch)
+{
+	EALLOW;
+
+	//Check to see if desired load switch is open or closed
+	switch (loadSwitch)
+	{
+	/////////////Hydrogen Load Switch (Block S)/////////////////////////////////
+		case HYDRO_LOAD:
+#ifdef _LAUNCH
+			if(GpioDataRegs.GPCDAT.bit.GPIO90 == LOAD_OPEN)
+				return 1;
+			else
+				return 0;
+#else
+			if(GpioDataRegs.GPBDAT.bit.GPIO44 == LOAD_OPEN)
+				return 1;
+			else
+				return 0;
+#endif
+
+	/////////////Solar Load Switch (Block M)/////////////////////////////////
+		case SOL_LOAD:
+
+#ifdef _LAUNCH
+			if(GpioDataRegs.GPCDAT.bit.GPIO89 == LOAD_OPEN)
+				return 1;
+			else
+				return 0;
+#else
+			if(GpioDataRegs.GPBDAT.bit.GPIO45 == LOAD_OPEN)
+				return 1;
+			else
+				return 0;
+#endif
+
+	/////////////AC Load Switch (Block C)/////////////////////////////////
+		case AC_LOAD:
+
+#ifdef _LAUNCH
+			if(GpioDataRegs.GPCDAT.bit.GPIO71 == LOAD_OPEN)
+				return 1;
+			else
+				return 0;
+#else
+			if(GpioDataRegs.GPBDAT.bit.GPIO48 == LOAD_OPEN)
+				return 1;
+			else
+				return 0;
+#endif
+
+	/////////////5V Output Load Switch (Block D)/////////////////////////////////
+		case FIVE_LOAD:
+#ifdef _LAUNCH
+			if(GpioDataRegs.GPBDAT.bit.GPIO41 == LOAD_OPEN)
+				return 1;
+			else
+				return 0;
+#else
+			if(GpioDataRegs.GPBDAT.bit.GPIO47 == LOAD_OPEN)
+				return 1;
+			else
+				return 0;
+#endif
+
+	/////////////12V Output Load Switch (Block T)/////////////////////////////////
+		case TWELVE_LOAD:
+
+#ifdef _LAUNCH
+			if(GpioDataRegs.GPBDAT.bit.GPIO60 == LOAD_OPEN)
+				return 1;
+			else
+				return 0;
+#else
+			if(GpioDataRegs.GPCDAT.bit.GPIO67 == LOAD_OPEN)
+				return 1;
+			else
+				return 0;
+#endif
+
+	}//END SWITCH
+
+    EDIS;
+}
 
 
 //###########################################################################

@@ -20,8 +20,15 @@
 
 #include "F2837xS_device.h"
 #include "F2837xS_Examples.h"
+#include "file.h"
+#include "stdio.h"
+#include "string.h"
+#include "sci_io.h"
 #include "APS_GlobalDefs.h"
 #include "APS_GlobalPrototypes.h"
+
+
+
 
 
 //*************************************************************************************************************************
@@ -94,9 +101,7 @@ void setTime(void)
 	julianTime.hour = (((int)hour[0] - 48) * 10) + ((int)hour[1] - 48);
 	julianTime.minute = (((int)minute[0] - 48) * 10) + ((int)minute[1] - 48);
 	julianTime.second = (((int)second[0] - 48) *10) + ((int)second[1] - 48);
-	addSeconds(97);
-
-
+	addSeconds(49);
 
 }//END FUNCTION
 
@@ -111,17 +116,22 @@ void setTime(void)
 //*************************************************************************************************************************
 int addSeconds(int seconds)
 {
+	int newMinutes = 0;
+	int newHours = 0;
+
 	julianTime.second = julianTime.second + seconds;
 
 	if(julianTime.second > 59)
 	{
-		julianTime.second = 0;
-		julianTime.minute = julianTime.minute + 1;
+		newMinutes = (julianTime.second / 60);
+		julianTime.second = julianTime.second - (newMinutes * 60);
+		julianTime.minute = julianTime.minute + newMinutes;
 
 		if(julianTime.minute > 59)
 		{
-			julianTime.minute = 0;
-			julianTime.hour = julianTime.hour + 1;
+			newHours = (julianTime.minute / 60);
+			julianTime.minute = julianTime.minute - (newHours * 60);
+			julianTime.hour = julianTime.hour + newHours;
 
 			if(julianTime.hour > 23)
 			{
@@ -133,9 +143,26 @@ int addSeconds(int seconds)
 return 1;
 }//END FUNCTION
 
+//*************************************************************************************************************************
+//NAME: getTime
+//
+//DESC:
+//
+//DATE: 19 April 2016
+//
+//AUTHOR: Dylan Schindler
+//*************************************************************************************************************************
+void getTime(char* returnString)
+{
+#ifdef _DEMO
 
+	sprintf(returnString, "%c%c%c %d, %d %d:%d:%d", julianTime.month[0],julianTime.month[1],julianTime.month[2], julianTime.day, julianTime.year,
+			julianTime.hour, julianTime.minute, julianTime.second);
+#else
+	sprintf(returnString, "%c%c%c%d%d%d%d%d", julianTime.month[0], julianTime.month[1],julianTime.month[2], julianTime.day, julianTime.year,
+			julianTime.hour, julianTime.minute, julianTime.second);
+#endif
 
-
-
+}//END FUNCTION
 //###########################################################################
 

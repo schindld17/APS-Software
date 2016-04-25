@@ -110,6 +110,7 @@ SECTIONS
    .ebss               : >> RAMLS5 | RAMGS0 | RAMGS1       PAGE = 1
    .esysmem            : > RAMLS5       PAGE = 1
 
+
    /* Initalized sections go in Flash */
    .econst             : >> FLASHF | FLASHG | FLASHH      PAGE = 0, ALIGN(4)
    .switch             : > FLASHB      PAGE = 0, ALIGN(4)

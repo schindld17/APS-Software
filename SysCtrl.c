@@ -397,25 +397,94 @@ void initPeripheralClocks(void)
 	CpuSysRegs.PCLKCR11.bit.McBSP_A = 0x0;
 	CpuSysRegs.PCLKCR11.bit.McBSP_B = 0x0;
 
-	//Turn on Comparator Modules 1,2,3,8 and 6/ Turn off all others.
-	CpuSysRegs.PCLKCR14.bit.CMPSS1 = 0x1;
-	CpuSysRegs.PCLKCR14.bit.CMPSS2 = 0x1;
-	CpuSysRegs.PCLKCR14.bit.CMPSS3 = 0x1;
-	CpuSysRegs.PCLKCR14.bit.CMPSS4 = 0x0;
+	//Turn on Comparator Modules///////////////////////////////
+	//If Five Volt Output Current component is connected turn on corresponding CMPSS clock gate
+	if(FIVEV_OUTPUT_CURRENT_COMPONENT)
+	{
+		CpuSysRegs.PCLKCR14.bit.CMPSS1 = 0x1;
+	}
+	else
+		CpuSysRegs.PCLKCR14.bit.CMPSS1 = 0x0;
+
+#ifndef _LAUNCH
+	if(TWELVEV_OUTPUT_CURRENT_COMPONENT)
+	{
+		CpuSysRegs.PCLKCR14.bit.CMPSS2 = 0x1;
+	}
+	else
+		CpuSysRegs.PCLKCR14.bit.CMPSS2 = 0x0;
+#endif
+
+	if(AC_INPUT_VOLTAGE_COMPONENT)
+	{
+		CpuSysRegs.PCLKCR14.bit.CMPSS3 = 0x1;
+	}
+	else
+		CpuSysRegs.PCLKCR14.bit.CMPSS3 = 0x0;
+
+#ifdef _LAUNCH
+	if(CAP_VOLTAGE_COMPONENT)
+	{
+		CpuSysRegs.PCLKCR14.bit.CMPSS4 = 0x1;
+	}
+	else
+		CpuSysRegs.PCLKCR14.bit.CMPSS4 = 0x0;
+
+#else
+	if(CAP_VOLTAGE_COMPONENT)
+	{
+		CpuSysRegs.PCLKCR14.bit.CMPSS8 = 0x1;
+	}
+	else
+		CpuSysRegs.PCLKCR14.bit.CMPSS8 = 0x0;
+	#endif
+
+#ifdef _LAUNCH
+	if(SOLAR_INPUT_VOLTAGE_COMPONENT)
+	{
+		CpuSysRegs.PCLKCR14.bit.CMPSS2 = 0x1;
+	}
+	else
+		CpuSysRegs.PCLKCR14.bit.CMPSS2 = 0x0;
+
+#else
+	if(SOLAR_INPUT_VOLTAGE_COMPONENT)
+	{
+		CpuSysRegs.PCLKCR14.bit.CMPSS6 = 0x1;
+	}
+	else
+		CpuSysRegs.PCLKCR14.bit.CMPSS6 = 0x0;
+	#endif
+
 	CpuSysRegs.PCLKCR14.bit.CMPSS5 = 0x0;
-	CpuSysRegs.PCLKCR14.bit.CMPSS6 = 0x1;
 	CpuSysRegs.PCLKCR14.bit.CMPSS7 = 0x0;
-	CpuSysRegs.PCLKCR14.bit.CMPSS8 = 0x1;
 
 	/////NOTE
 	//Need to add in initilization gate and init for USB.
 
-	//Turn on ePWM Modules
-	CpuSysRegs.PCLKCR2.bit.EPWM1 = 0x1;
-	CpuSysRegs.PCLKCR2.bit.EPWM2 = 0x1;
-	CpuSysRegs.PCLKCR2.bit.EPWM3 = 0x1;
-	CpuSysRegs.PCLKCR2.bit.EPWM4 = 0x1;
-	CpuSysRegs.PCLKCR2.bit.EPWM5 = 0x1;
+	//Turn on ePWM Modules//////////////////////////////
+	//If Solar Voltage component is connected turn on corresponding EPWM clock gate
+	if(SOLAR_INPUT_VOLTAGE_COMPONENT)
+	{
+		CpuSysRegs.PCLKCR2.bit.EPWM1 = 0x1;
+	}
+	else
+		CpuSysRegs.PCLKCR2.bit.EPWM1 = 0x0;
+
+	if(AC_INPUT_VOLTAGE_COMPONENT)
+	{
+		CpuSysRegs.PCLKCR2.bit.EPWM2 = 0x1;
+	}
+	else
+		CpuSysRegs.PCLKCR2.bit.EPWM2 = 0x0;
+
+	if(CAP_VOLTAGE_COMPONENT)
+	{
+		CpuSysRegs.PCLKCR2.bit.EPWM3 = 0x1;
+	}
+	else
+		CpuSysRegs.PCLKCR2.bit.EPWM3 = 0x0;
+
 	CpuSysRegs.PCLKCR2.bit.EPWM12 = 0x1;
 	//Set EPWM modules clocks to be PLLSYS/2
 	ClkCfgRegs.PERCLKDIVSEL.bit.EPWMCLKDIV = 0x1;
@@ -424,12 +493,10 @@ void initPeripheralClocks(void)
 	//Turn off all other peripherals.
 	CpuSysRegs.PCLKCR0.all = 0;
 	CpuSysRegs.PCLKCR1.all = 0;
-	//CpuSysRegs.PCLKCR2.all = 0;
 	CpuSysRegs.PCLKCR3.all = 0;
 	CpuSysRegs.PCLKCR4.all = 0;
 	CpuSysRegs.PCLKCR6.all = 0;
-	CpuSysRegs.PCLKCR7.all = 0;
-#ifdef _TEST
+#ifdef _DEMO
 	CpuSysRegs.PCLKCR7.bit.SCI_A = 0x1;
 	CpuSysRegs.PCLKCR7.bit.SCI_B = 0x1;
 	CpuSysRegs.PCLKCR7.bit.SCI_C = 0x1;
@@ -439,9 +506,8 @@ void initPeripheralClocks(void)
 	CpuSysRegs.PCLKCR10.bit.CAN_B = 1;
 
 #else
-	CpuSysRegs.PCLKCR8.all = 0;
+	CpuSysRegs.PCLKCR7.all = 0;
 #endif
-	CpuSysRegs.PCLKCR0.all = 0;
 	CpuSysRegs.PCLKCR10.all = 0;
 	CpuSysRegs.PCLKCR12.all = 0;
 	CpuSysRegs.PCLKCR16.all = 0;
