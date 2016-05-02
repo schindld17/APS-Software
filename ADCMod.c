@@ -3,18 +3,18 @@
 //
 //	FILE:	ADCMod.c
 //
-//	TITLE:
+//	TITLE: ADC Peripheral Support Functions
 //
-//	DESCRIPTION:
-//
-//
-//
-//
+//	DESCRIPTION: Multiple Support functions for the ADC peripherals on-board.
+//  Functions include an intialization function to set the proper state of
+//  peripherals on system start. Function to sample desired ADC and peform
+//  averaging. Funtion to convert raw result supplied from ADC result register
+//  to proper scale.
 //
 //###########################################################################
 //	Author: Dylan Schindler
-//	Creation Date: Mar 26, 2016 
-//	Release Date:
+//	Creation Date: 	Mar 26, 2016
+//	Release Date: 	Apr 27, 2016
 //###########################################################################
 
 #include "F2837xS_Adc_defines.h"
@@ -25,18 +25,36 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+//The number of samples that are taken to create the average
 #define SAMPLEAVG 100
 
 
-//*************************************************************************************************************************
+//****************************************************************************
 //NAME: ADCInit
 //
-//DESC: Initialize all ADC modules....
+//DESC: Initialize all ADC modules (A,B,C,D) to 12-bit singled ended mode with
+//		clocks scaled to 48.5 MHZ. Below the ADC pins used within the system
+//		are listed along with the basic configuration used
+//
+//CHANNEL CONFIG (System Function: Pin/Start-of-Conversion,Post Processing
+//						block, interrupt flag)
+//		Hydrogen Fuel Cell Input Voltage Measurement: 	ADCINC4/SOC0/PPB1/INT1
+//		Hydrogen Fuel Cell Input Current Measurement: 	ADCINA1/SOC0/PPB1/INT1
+//		Solar Input Voltage Measurement:			  	ADCINC2/SOC1/PPB2/INT2
+//			NOTE: If _LAUNCH is defined then			ADCINA4/SOC3/PPB4/INT4
+//		Solar Input Current Measurement: 				ADCINA0/SOC1/PPB2/INT2
+//		AC Input Voltage Measurement:					ADCINB2/SOC0/PPB1/INT1
+//		AC Input Current Measurement:					ADCINB1/SOC1/PPB2/INT2
+//		Capacitor Voltage Measurement:					ADCIND2/SOC0/PPB1/INT1
+//			NOTE: If _LAUNCH is defined then 			ADCIN14/SOC3/PPB3/INT3
+//		Capacitor Current Measurement:					ADCIND4/SOC1/PPB2/INT2
+//		Five Volt Output Current Measurement:			ADCINA2/SOC2/PPB3/INT3
+//		Twelve Volt Output Current Measurement:			ADCINA4/SOC3/PPB4/INT4
 //
 //DATE: 26 March 2016
 //
 //AUTHOR: Dylan Schindler
-//*************************************************************************************************************************
+//*****************************************************************************
 
 void ADCInit(void)
 {
@@ -103,7 +121,7 @@ void ADCInit(void)
 
 	EDIS;
 
-	//Initialize ADC modules to be used with 12V input line (Block R on System-Block Diagram).
+	//Initialize ADC channels to be used with 12V input line (Block R on System-Block Diagram).
 	//This line corresponds to the Hydrogen Fuel Cell input line.
 	//ADCINC4 will be used to measure the voltage on this line and ADCINA1 will be used
 	// to measure the current on this line.
@@ -157,7 +175,7 @@ if(HYDRO_INPUT_CURRENT_COMPONENT)
 	EDIS;
 }//END IF
 
-	//Initialize ADC modules to be used with 20V input line (Block N on System-Block Diagram).
+	//Initialize ADC channels to be used with 20V input line (Block N on System-Block Diagram).
 	//This line corresponds to the Solar input line.
 	//ADCINC2 will be used to measure the voltage on this line and ADCINA0 will be used
 	// to measure the current on this line.
@@ -239,7 +257,7 @@ if(SOLAR_INPUT_CURRENT_COMPONENT)
 }//END IF
 
 	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize ADC modules to be used with AC input line (Block B on System-Block Diagram).
+	//Initialize ADC channels to be used with AC input line (Block B on System-Block Diagram).
 	//This line corresponds to the AC input line.
 	//ADCINB2 will be used to measure the voltage on this line and ADCINB1 will be used
 	// to measure the current on this line.
@@ -258,7 +276,7 @@ if(AC_INPUT_VOLTAGE_COMPONENT)
 	AdcaRegs.ADCPPB2OFFREF = 0x7C;
 #else
 	//Set SOC0 PPB offset correction to about .1V (ADCOut - 124)
-	AdcbRegs.ADCPPB1OFFREF = 0x7C;
+	AdcbRegs.ADCPPB1OFFREF = 0x0E;
 #endif
 	//End of conversion on SOC0 will set INT1 flag.
 	AdcbRegs.ADCINTSEL1N2.bit.INT1SEL = 0x0;
@@ -295,7 +313,7 @@ if(AC_INPUT_CURRENT_COMPONENT)
 }//END IF
 
 	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize ADC modules to be used with Cap line (Block L on System-Block Diagram).
+	//Initialize ADC channels to be used with Cap line (Block L on System-Block Diagram).
 	//This line corresponds to the line ahead of the Cap Bank.
 	//ADCIND2 will be used to measure the voltage on this line and ADCIND4 will be used
 	// to measure the current on this line.
@@ -374,7 +392,7 @@ if(CAP_CURRENT_COMPONENT)
 }//END IF
 
 	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize ADC modules to be used with 5V output line (Block E on System-Block Diagram).
+	//Initialize ADC channels to be used with 5V output line (Block E on System-Block Diagram).
 	//ADCINA2 will be used to measure the current on this line.
 if(FIVEV_OUTPUT_CURRENT_COMPONENT)
 {
@@ -403,7 +421,7 @@ if(FIVEV_OUTPUT_CURRENT_COMPONENT)
 
 #ifndef _LAUNCH
 	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize ADC modules to be used with 12V output line (Block F on System-Block Diagram).
+	//Initialize ADC channels to be used with 12V output line (Block F on System-Block Diagram).
 	//ADCINA4 will be used to measure the current on this line.
 if(TWELVEV_OUTPUT_CURRENT_COMPONENT)
 {
@@ -469,7 +487,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 
 						//Get ADC sample result from SOC1
 						sample = AdcaResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
-					}
+					}//END IF
 					else
 						sample = 0;
 					break;
@@ -485,7 +503,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 
 						//Get ADC sample result from SOC0
 						sample = AdcaResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
-					}
+					}//END IF
 					else
 						sample = 0;
 					break;
@@ -519,7 +537,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 
 						//Get ADC sample result from SOC3
 						sample = AdcaResultRegs.ADCPPB4RESULT.bit.PPBRESULT + sample;
-					}
+					}//END IF
 					else
 						sample = 0;
 					break;
@@ -537,7 +555,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 
 						//Get ADC sample result from SOC0
 						sample = AdcaResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
-					}
+					}//END IF
 					else
 						sample = 0;
 					break;
@@ -553,7 +571,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 
 						//Get ADC sample result from SOC0
 						sample = AdcbResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
-					}
+					}//END IF
 					else
 						sample = 0;
 					break;
@@ -569,7 +587,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 
 						//Get ADC sample result from SOC1
 						sample = AdcbResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
-					}
+					}//END IF
 					else
 						sample = 0;
 					break;
@@ -586,7 +604,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 
 						//Get ADC sample result from SOC3
 						sample = AdcdResultRegs.ADCPPB3RESULT.bit.PPBRESULT + sample;
-					}
+					}//END IF
 					else
 						sample = 0;
 					break;
@@ -603,7 +621,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 
 						//Get ADC sample result from SOC0
 						sample = AdcdResultRegs.ADCPPB1RESULT.bit.PPBRESULT + sample;
-					}
+					}//END IF
 					else
 						sample = 0;
 					break;
@@ -621,7 +639,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 
 						//Get ADC sample result from SOC1
 						sample = AdcdResultRegs.ADCPPB2RESULT.bit.PPBRESULT + sample;
-					}
+					}//END IF
 					else
 						sample = 0;
 					break;
@@ -637,7 +655,7 @@ int16_t sampleADC(ADC_Selection ADCModule)
 
 						//Get ADC sample result from SOC2
 						sample = AdcaResultRegs.ADCPPB3RESULT.bit.PPBRESULT + sample;
-					}
+					}//END IF
 					else
 						sample = 0;
 					break;
@@ -653,36 +671,41 @@ int16_t sampleADC(ADC_Selection ADCModule)
 
 						//Get ADC sample result from SOC3
 						sample = AdcaResultRegs.ADCPPB4RESULT.bit.PPBRESULT + sample;
-					}
+					}//END IF
 					else
 						sample = 0;
 					break;
 			}//END SWITCH
 	}//END FOR
-
 	//Set the final value by calculating a sample average
 	finalVal = (int16_t)(sample/SAMPLEAVG);
 
     EDIS;
 
+    //If an overflow has occurred or some other unknown error set the value to zero
     if(finalVal < 0)
     	finalVal = 0;
 
-    //Return the raw temperature because the devices don't have slope/offset values
     return(finalVal);
 
 }//END FUNCTION
 
 
-//*************************************************************************************************************************
+//****************************************************************************************
 //NAME: convertADC
 //
-//DESC:
+//DESC: Take as input an unsigned 16-bit integer value from the result register of an ADC
+//		channel and scale the value to proper size if a voltage step-down circuit is used
+//		ahead of the pin. Convert the value to a properly formatted string (ex. 3.0004).
+//		NOTE: If the values from the ADC channel result register are being saved to a log
+//			  within system flash then this function should not be used. This function is
+//			  to be used to allow for a more readable format to be shown to users during
+//			  debug or system demo
 //
 //DATE: 3 April 2016
 //
 //AUTHOR: Dylan Schindler
-//*************************************************************************************************************************
+//****************************************************************************************
 
 void convertADC(int16_t adcVal, ADC_Selection ADCModule, char* returnString)
 {
@@ -697,84 +720,85 @@ void convertADC(int16_t adcVal, ADC_Selection ADCModule, char* returnString)
 		convVal = adcVal/ 65536;
 
 	//Select the correct reference voltage constant
+	//These (VREF_) values are defined within APS_GlobalDefs.h
 	switch (ADCModule)
 		{
-			case HYDRO_VOLT://ADCINC4/~3.3V
+			case HYDRO_VOLT://ADCINC4
+				//Check to see if the component is in use
+				//The value of this symbol is defined in APS_GlobalDefs.h
 				if(HYDRO_INPUT_VOLTAGE_COMPONENT)
 				{
 #ifdef _NO_VOLT_TEST
 					//Multiply it by reference voltage ~3.3V (VDDA)
 					finalVal = convVal * VDDA;
 #else
+					//Multipy it by the Hydrogen Input Reference Voltage Value
 					finalVal = convVal * VREFHI_HYDRO_VOLT;
 #endif
-				}
+				}//END IF
 				else
 					moduleConnected = 0;
 				break;
-			case HYDRO_CUR://ADCINA1/~3.3V
+			case HYDRO_CUR://ADCINA1
+				//Check to see if the component is in use
+				//The value of this symbol is defined in APS_GlobalDefs.h
 				if(HYDRO_INPUT_CURRENT_COMPONENT)
 				{
-#ifdef _NO_VOLT_TEST
-					//Multiply it by reference voltage ~3.3V (VDDA)
-					finalVal = convVal * VDDA;
-#else
-					finalVal = convVal * VREFHI_HYDRO_CUR;
-#endif
-				}
+					//NOTE: ADD Current Conversions
+				}//END IF
 				//NOTE: ADD Current Conversions
 				break;
-			case SOL_VOLT://ADCINC2/~3.3V
+			case SOL_VOLT://ADCINC2
+				//Check to see if the component is in use
+				//The value of this symbol is defined in APS_GlobalDefs.h
 				if(SOLAR_INPUT_VOLTAGE_COMPONENT)
 				{
 #ifdef _NO_VOLT_TEST
 					//Multiply it by reference voltage ~3.3V (VDDA)
 					finalVal = convVal * VDDA;
 #else
+					//Multiply it by the Solar Input Reference Voltage Value
 					finalVal = convVal * VREFHI_SOL_VOLT;
 #endif
-				}
+				}//END IF
 				else
 					moduleConnected = 0;
 				break;
-			case SOL_CUR://ADCINA0/~3.3V
+			case SOL_CUR://ADCINA0
+				//Check to see if the component is in use
+				//The value of this symbol is defined in APS_GlobalDefs.h
 				if(SOLAR_INPUT_CURRENT_COMPONENT)
 				{
-#ifdef _NO_VOLT_TEST
-					//Multiply it by reference voltage ~3.3V (VDDA)
-					finalVal = convVal * VDDA;
-#else
-					finalVal = convVal * VREFHI_SOL_CUR;
-#endif
-				}
-				//NOTE: ADD Current Conversions
+						//NOTE: ADD Current Conversions
+				}//END IF
 				break;
-			case AC_VOLT://ADCINB2/~3.3V
+			case AC_VOLT://ADCINB2
+				//Check to see if the component is in use
+				//The value of this symbol is defined in APS_GlobalDefs.h
 				if(AC_INPUT_VOLTAGE_COMPONENT)
 				{
 #ifdef _NO_VOLT_TEST
 					//Multiply it by reference voltage ~3.3V (VDDA)
 					finalVal = convVal * VDDA;
 #else
+					//Multiply it by the AC Input Reference Voltage Value
 					finalVal = convVal * VREFHI_AC_VOLT;
 #endif
-				}
+				}//END IF
 				else
 					moduleConnected = 0;
 				break;
-			case AC_CUR://ADCINB1/~3.3V
+			case AC_CUR://ADCINB1
+				//Check to see if the component is in use
+				//The value of this symbol is defined in APS_GlobalDefs.h
 				if(AC_INPUT_CURRENT_COMPONENT)
 				{
-#ifdef _NO_VOLT_TEST
-					//Multiply it by reference voltage ~3.3V (VDDA)
-					finalVal = convVal * VDDA;
-#else
-					finalVal = convVal * VREFHI_AC_CUR;
-#endif
-				}
-				//NOTE: ADD Current Conversions
+					//NOTE: ADD Current Conversions
+				}//END IF
 				break;
-			case CAP_VOLT://ADCIND2/~3.3V
+			case CAP_VOLT://ADCIND2
+				//Check to see if the component is in use
+				//The value of this symbol is defined in APS_GlobalDefs.h
 				if(CAP_VOLTAGE_COMPONENT)
 				{
 #ifdef _NO_VOLT_TEST
@@ -783,39 +807,35 @@ void convertADC(int16_t adcVal, ADC_Selection ADCModule, char* returnString)
 #else
 					finalVal = convVal * VREFHI_CAP_VOLT;
 #endif
-				}
+				}//END IF
 				else
 					moduleConnected = 0;
 				break;
-			case CAP_CUR://ADCIND4/~3.3V
-				finalVal = convVal * VREFHI_CAP_CUR;
-				//NOTE: ADD Current Conversions
+			case CAP_CUR://ADCIND4
+				//Check to see if the component is in use
+				//The value of this symbol is defined in APS_GlobalDefs.h
+				if(CAP_CURRENT_COMPONENT)
+				{
+					//NOTE: ADD Current Conversions
+				}//END IF
 				break;
-			case FIVEV_CUR://ADCINA2/~3.3V
+			case FIVEV_CUR://ADCINA2
+				//Check to see if the component is in use
+				//The value of this symbol is defined in APS_GlobalDefs.h
 				if(FIVEV_OUTPUT_CURRENT_COMPONENT)
 				{
-					//NOTE: ADD Current Conversions
-#ifdef _NO_VOLT_TEST
-					//Multiply it by reference voltage ~3.3V (VDDA)
-					finalVal = convVal * VDDA;
-#else
-					finalVal = convVal * VREFHI_FIVEV_CUR;
-#endif
-				}
+						//NOTE: ADD Current Conversions
+				}//END IF
 				else
 					moduleConnected = 0;
 				break;
-			case TWELVEV_CUR://ADCINA4/~3.3V
+			case TWELVEV_CUR://ADCINA4
+				//Check to see if the component is in use
+				//The value of this symbol is defined in APS_GlobalDefs.h
 				if(TWELVEV_OUTPUT_CURRENT_COMPONENT)
 				{
-					//NOTE: ADD Current Conversions
-#ifdef _NO_VOLT_TEST
-					//Multiply it by reference voltage ~3.3V (VDDA)
-					finalVal = convVal * VDDA;
-#else
-					finalVal = convVal * VREFHI_TWELVE_CUR;
-#endif
-				}
+						//NOTE: ADD Current Conversions
+				}//END IF
 				else
 					moduleConnected = 0;
 				break;

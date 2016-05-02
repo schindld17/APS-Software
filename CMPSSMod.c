@@ -1,44 +1,58 @@
-//###########################################################################
+//#############################################################################
 //	PROJECT: APS-Software
 //
 //	FILE:	CMPSSMod.c
 //
-//	TITLE:
+//	TITLE: Analog Comparator Support Functions
 //
-//	DESCRIPTION:
+//	DESCRIPTION: Multiple Support functions for the CMPSS peripherals on-board.
+//  Functions include an intialization fucntion to set proper state of
+//  the CMPSS peripherals on system start. Initialization function to set proper
+//  state of the ePWM peripherals on system start so they are connected to the
+//  correct CMPSS and the correct interrupts are enabled.
 //
-//
-//
-//
-//
-//###########################################################################
+//#############################################################################
 //	Author: Dylan Schindler
-//	Creation Date: Apr 6, 2016 
-//	Release Date:
-//###########################################################################
+//	Creation Date: 	Apr 06, 2016
+//	Release Date: 	May 02, 2016
+//#############################################################################
 
 #include "F2837xS_device.h"
 #include "F2837xS_Examples.h"
 #include "APS_GlobalDefs.h"
 
-//*************************************************************************************************************************
+//*****************************************************************************
 //NAME: InitCMPSS
 //
-//DESC:
+//DESC: Function to initialize each CMPSS peripheral to the correct state. The
+//      list of each peripheral used and which system component it is used with
+//		can be seen below.
+//CHANNEL CONFIG (System Function: Comparator)
+//		Solar Input Voltage Measurement:			  	CMPSS2 (ADCINC2)
+//			NOTE: IF _LAUNCH is defined then 			CMPSS6 (ADCINC2)
+//			NOTE: If _LAUNCH is defined then			Undefined
+//		Solar Input Current Measurement: 				Undefined
+//		AC Input Voltage Measurement:					CMPSS3 (ADCINB2)
+//		AC Input Current Measurement:					Undefined
+//		Capacitor Voltage Measurement:					CMPSS8 (ADCIND2)
+//			NOTE: If _LAUNCH is defined then 			CMPSS4 (ADCIN14)
+//		Capacitor Current Measurement:					Undefined
+//		Five Volt Output Current Measurement:			CMPSS1 (ADCINA2)
+//		Twelve Volt Output Current Measurement:			CMPSS2 (ADCINA4)
 //
 //DATE: 5 April 2016
 //
 //AUTHOR: Dylan Schindler
-//*************************************************************************************************************************
+//******************************************************************************
 void CMPSSInit(void)
 {
 
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize CMPSS to be used with Solar Input Voltage (Block N on System-Block Diagram).
-	//ADCINC2 will be used as the input pin.
+	////////////////////////////////////////////////////////////////////////////
+	//Initialize CMPSS to be used with Solar Input Voltage (Block N on System-
+	//Block Diagram). ADCINA4 will be used as the input pin.
 	EALLOW;
 #ifdef _LAUNCH
-	///////////CMPSS2 Positive Values//////////////////////////////////////////
+	///////////CMPSS2 Positive Values////////////////////////////////////////////
 		//Enable CMPSS
 		Cmpss2Regs.COMPCTL.bit.COMPDACE = 0x1;
 		//Use VDDA as reference for DAC
@@ -46,12 +60,17 @@ void CMPSSInit(void)
 		////////////CMPSS High//////////////////////
 		//Set Negative signal for CMPSSH to come from internal DAC
 		Cmpss2Regs.COMPCTL.bit.COMPHSOURCE = 0x0;
+		//Ensure the high comparator is not inverted
 		Cmpss2Regs.COMPCTL.bit.COMPHINV = 0x0;
+		//If this symbol is defined then no voltage measurement circuit is being
+		//used with this configuration. This symbol is defined within the
+		//predefined symbols options for the build configuration of the project.
 	#ifdef _NO_VOLT_TEST
-		//Set DAC to midpoint for reference
+		//Set DAC reference value to midpoint of range
 		Cmpss2Regs.DACHVALS.bit.DACVAL = 2048;
 	#else
-		//Set DAC to midpoint for reference
+		//Set DAC to Solar Voltage reference point
+		//Symbol defined in APS_GlobalDefs.h
 		Cmpss2Regs.DACHVALS.bit.DACVAL = CMPSS_SOL_V;
 	#endif
 		//Asynch output feeds for CTRIPH
@@ -67,12 +86,17 @@ void CMPSSInit(void)
 		////////////CMPSS High//////////////////////
 		//Set Negative signal for CMPSSH to come from internal DAC
 		Cmpss6Regs.COMPCTL.bit.COMPHSOURCE = 0x0;
+		//Ensure the high comparator is not inverted
 		Cmpss6Regs.COMPCTL.bit.COMPHINV = 0x0;
+		//If this symbol is defined then no voltage measurement circuit is being
+		//used with this configuration. This symbol is defined within the
+		//predefined symbols options for the build configuration of the project.
 	#ifdef _NO_VOLT_TEST
-		//Set DAC to midpoint for reference
+		//Set DAC reference value to midpoint of range
 		Cmpss6Regs.DACHVALS.bit.DACVAL = 2048;
 	#else
-		//Set DAC to midpoint for reference
+		//Set DAC to Solar Voltage reference point
+		//Symbol defined in APS_GlobalDefs.h
 		Cmpss6Regs.DACHVALS.bit.DACVAL = CMPSS_SOL_V;
 	#endif
 		//Asynch output feeds for CTRIPH
@@ -81,9 +105,9 @@ void CMPSSInit(void)
 		EDIS;
 #endif
 
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize CMPSS to be used with AC Input Voltage (Block B on System-Block Diagram).
-	//ADCINB2 will be used as the input pin.
+	///////////////////////////////////////////////////////////////////////////
+	//Initialize CMPSS to be used with AC Input Voltage (Block B on System-
+	//Block Diagram). ADCINB2 will be used as the input pin.
 	EALLOW;
 
 	///////////CMPSS3 Positive Values//////////////////////////////////////////
@@ -94,12 +118,17 @@ void CMPSSInit(void)
 	////////////CMPSS High//////////////////////
 	//Set Negative signal for CMPSSH to come from internal DAC
 	Cmpss3Regs.COMPCTL.bit.COMPHSOURCE = 0x0;
+	//Ensure the high comparator is not inverted
 	Cmpss3Regs.COMPCTL.bit.COMPHINV = 0x0;
+	//If this symbol is defined then no voltage measurement circuit is being
+	//used with this configuration. This symbol is defined within the predefined
+	//symbols options for the build configuration of the project.
 #ifdef _NO_VOLT_TEST
-	//Set DAC to midpoint for reference
+	//Set DAC reference value to midpoint of range
 	Cmpss3Regs.DACHVALS.bit.DACVAL = 2048;
 #else
-	//Set DAC to midpoint for reference
+	//Set DAC to AC Voltage reference point
+	//Symbol defined in APS_GlobalDefs.h
 	Cmpss3Regs.DACHVALS.bit.DACVAL = CMPSS_AC_V;
 #endif
 	//Asynch output feeds for CTRIPH
@@ -107,12 +136,12 @@ void CMPSSInit(void)
 
 	EDIS;
 
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize CMPSS to be used with Cap Line (Block L on System-Block Diagram).
-	//ADCIND2 will be used as the input pin.
+	///////////////////////////////////////////////////////////////////////////
+	//Initialize CMPSS to be used with Cap Line (Block L on System-
+	//Block Diagram).ADCIND2 will be used as the input pin.
 	EALLOW;
 #ifdef _LAUNCH
-	///////////CMPSS8 Positive Values//////////////////////////////////////////
+	///////////CMPSS4 Positive Values//////////////////////////////////////////
 	//Enable CMPSS
 	Cmpss4Regs.COMPCTL.bit.COMPDACE = 0x1;
 	//Use VDDA as reference for DAC
@@ -120,12 +149,17 @@ void CMPSSInit(void)
 	////////////CMPSS High//////////////////////
 	//Set Negative signal for CMPSSH to come from internal DAC
 	Cmpss4Regs.COMPCTL.bit.COMPHSOURCE = 0x0;
+	//Ensure the high comparator is not inverted
 	Cmpss4Regs.COMPCTL.bit.COMPHINV = 0x0;
+	//If this symbol is defined then no voltage measurement circuit is being
+	//used with this configuration. This symbol is defined within the predefined
+	//symbols options for the build configuration of the project.
 #ifdef _NO_VOLT_TEST
-	//Set DAC to midpoint for reference
+	//Set DAC reference value to midpoint of range
 	Cmpss4Regs.DACHVALS.bit.DACVAL = 2048;
 #else
-	//Set DAC to midpoint for reference
+	//Set DAC to Capacitor Voltage reference point
+	//Symbol defined in APS_GlobalDefs.h
 	Cmpss4Regs.DACHVALS.bit.DACVAL = CMPSS_CAP_H;
 #endif
 	//Asynch output feeds for CTRIPH
@@ -133,12 +167,17 @@ void CMPSSInit(void)
 	////////////CMPSS Low//////////////////////
 	//Set Negative signal for CMPSSL to come from internal DAC
 	Cmpss4Regs.COMPCTL.bit.COMPLSOURCE = 0x0;
+	//Ensure the high comparator is not inverted
 	Cmpss4Regs.COMPCTL.bit.COMPLINV = 0x0;
+	//If this symbol is defined then no voltage measurement circuit is being
+	//used with this configuration. This symbol is defined within the predefined
+	//symbols options for the build configuration of the project.
 #ifdef _NO_VOLT_TEST
-	//Set DAC to midpoint for reference
-	Cmpss4Regs.DACLVALS.bit.DACVAL = 100;
+	//Set DAC reference value to midpoint of range
+	Cmpss4Regs.DACLVALS.bit.DACVAL = 2048;
 #else
-	//Set DAC to midpoint for reference
+	//Set DAC to Capacitor Voltage reference point
+	//Symbol defined in APS_GlobalDefs.h
 	Cmpss4Regs.DACLVALS.bit.DACVAL = CMPSS_CAP_L;
 #endif
 	//Asynch output feeds for CTRIPH and CTRIPOUTH
@@ -154,9 +193,13 @@ void CMPSSInit(void)
 	////////////CMPSS High//////////////////////
 	//Set Negative signal for CMPSSH to come from internal DAC
 	Cmpss8Regs.COMPCTL.bit.COMPHSOURCE = 0x0;
+	//Ensure the high comparator is not inverted
 	Cmpss8Regs.COMPCTL.bit.COMPHINV = 0x0;
+	//If this symbol is defined then no voltage measurement circuit is being
+	//used with this configuration. This symbol is defined within the predefined
+	//symbols options for the build configuration of the project..
 #ifdef _NO_VOLT_TEST
-	//Set DAC to midpoint for reference
+	//Set DAC reference value to midpoint of range
 	Cmpss8Regs.DACHVALS.bit.DACVAL = 2048;
 #else
 	//Set DAC to midpoint for reference
@@ -169,7 +212,7 @@ void CMPSSInit(void)
 	Cmpss8Regs.COMPCTL.bit.COMPLSOURCE = 0x0;
 	Cmpss8Regs.COMPCTL.bit.COMPLINV = 0x0;
 #ifdef _NO_VOLT_TEST
-	//Set DAC to midpoint for reference
+	//Set DAC reference value to midpoint of range
 	Cmpss8Regs.DACLVALS.bit.DACVAL = 100;
 #else
 	//Set DAC to midpoint for reference
@@ -182,9 +225,9 @@ void CMPSSInit(void)
 #endif
 
 
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize CMPSS to be used with 5V Output Line (Block E on System-Block Diagram).
-	//ADCINA2 will be used as the input pin.
+	///////////////////////////////////////////////////////////////////////////
+	//Initialize CMPSS to be used with 5V Output Line (Block E on System-
+	//Block Diagram). ADCINA2 will be used as the input pin.
 	EALLOW;
 
 	///////////CMPSS1 Positive Values//////////////////////////////////////////
@@ -195,9 +238,13 @@ void CMPSSInit(void)
 	////////////CMPSS High//////////////////////
 	//Set Negative signal for CMPSSH to come from internal DAC
 	Cmpss1Regs.COMPCTL.bit.COMPHSOURCE = 0x0;
+	//Ensure the high comparator is not inverted
 	Cmpss1Regs.COMPCTL.bit.COMPHINV = 0x0;
+	//If this symbol is defined then no voltage measurement circuit is being
+	//used with this configuration. This symbol is defined within the predefined
+	//symbols options for the build configuration of the project.
 #ifdef _NO_VOLT_TEST
-	//Set DAC to midpoint for reference
+	//Set DAC reference value to midpoint of range
 	Cmpss1Regs.DACHVALS.bit.DACVAL = 2048;
 #else
 	//Set DAC to midpoint for reference
@@ -208,9 +255,9 @@ void CMPSSInit(void)
 
 	EDIS;
 
-	/////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize CMPSS to be used with 12V Output Line (Block F on System-Block Diagram).
-	//ADCINA4 will be used as the input pin.
+	///////////////////////////////////////////////////////////////////////////
+	//Initialize CMPSS to be used with 12V Output Line (Block F on System-
+	//Block Diagram). ADCINA4 will be used as the input pin.
 	EALLOW;
 
 	///////////CMPSS2 Positive Values//////////////////////////////////////////
@@ -221,7 +268,11 @@ void CMPSSInit(void)
 	////////////CMPSS High//////////////////////
 	//Set Negative signal for CMPSSH to come from internal DAC
 	Cmpss2Regs.COMPCTL.bit.COMPHSOURCE = 0x0;
+	//Ensure the high comparator is not inverted
 	Cmpss2Regs.COMPCTL.bit.COMPHINV = 0x0;
+	//If this symbol is defined then no voltage measurement circuit is being
+	//used with this configuration. This symbol is defined within the predefined
+	//symbols options for the build configuration of the project.
 #ifdef _NO_VOLT_TEST
 	//Set DAC to midpoint for reference
 	Cmpss2Regs.DACHVALS.bit.DACVAL = 2048;
@@ -237,26 +288,31 @@ void CMPSSInit(void)
 }//END FUNCTION
 
 
-//*************************************************************************************************************************
+//******************************************************************************
 //NAME: InitEPWM
 //
-//DESC:
+//DESC: This will configure the enhanced Pulse Width Modulation (ePWM)
+//		peripherals that will be used with the CMPSS peripherals defined above
+//		to register interrupts when the CMPSS thresholds are crossed.
+//
+//NOTE: Not all ePWM modules that are needed are defined within the current
+//		revision.
 //
 //DATE: 5 April 2016
 //
 //AUTHOR: Dylan Schindler
-//*************************************************************************************************************************
+//******************************************************************************
 void EPWMInit(void)
 {
 	EALLOW;
 
 	CpuSysRegs.PCLKCR0.bit.TBCLKSYNC = 0x0;
 
-	//////////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize EPWM1 to be used with Solar Input Voltage (CMPSS6) (Block N on System-Block Diagram).
-	//ADCINB2 will be used as the input pin.
+	////////////////////////////////////////////////////////////////////////////
+	//Initialize EPWM1 to be used with Solar Input Voltage (CMPSS6) (Block N on
+	//System-Block Diagram). ADCINB2 will be used as the input pin.
 
-	///////////Epwm1  Values/////////////////////////////////////////////////////////////////////
+	///////////Epwm1  Values////////////////////////////////////////////////////
 	//Configure EPWM to run at SYSCLOCK/(128*14) ~ 54018Hz.
 	EPwm1Regs.TBCTL.bit.HSPCLKDIV = 0x7;
 	EPwm1Regs.TBCTL.bit.CLKDIV = 0x7;
@@ -289,9 +345,11 @@ void EPWMInit(void)
 	//Configure DCB to be unfiltered and asynch
 	EPwm1Regs.DCBCTL.bit.EVT1SRCSEL = 0x0;
 	EPwm1Regs.DCBCTL.bit.EVT1FRCSYNCSEL = 0x1;
-	//Configure Digital Comparator Trip Zone Output A Event 1 (DCAEVT1) to be DCAH 1
+	//Configure Digital Comparator Trip Zone Output A Event 1 (DCAEVT1) to be
+	//DCAH 1
 	EPwm1Regs.TZDCSEL.bit.DCAEVT1 = 0x2;
-	//Configure Digital Comparator Trip Zone Output B Event 1 (DCBEVT1) to be DCAH 0
+	//Configure Digital Comparator Trip Zone Output B Event 1 (DCBEVT1) to be
+	//DCAH 0
 	EPwm1Regs.TZDCSEL.bit.DCBEVT1 = 0x1;
 	//Configure DCA to be unfiltered and asynch
 	EPwm1Regs.DCACTL.bit.EVT1SRCSEL = 0x0;
@@ -308,11 +366,11 @@ void EPWMInit(void)
 	}
 
 
-	//////////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize EPWM2 to be used with AC Input Voltage (CMPSS3) (Block B on System-Block Diagram).
-	//ADCINB2 will be used as the input pin.
+	//////////////////////////////////////////////////////////////////////////
+	//Initialize EPWM2 to be used with AC Input Voltage (CMPSS3) (Block B on
+	//System-Block Diagram). ADCINB2 will be used as the input pin.
 
-	///////////Epwm2  Values/////////////////////////////////////////////////////////////////////
+	///////////Epwm2  Values/////////////////////////////////////////////////
 	//Configure EPWM to run at SYSCLOCK/(128*14) ~ 54018Hz.
 	EPwm2Regs.TBCTL.bit.HSPCLKDIV = 0x7;
 	EPwm2Regs.TBCTL.bit.CLKDIV = 0x7;
@@ -338,9 +396,11 @@ void EPWMInit(void)
 	//Configure DCB to be unfiltered and asynch
 	EPwm2Regs.DCBCTL.bit.EVT1SRCSEL = 0x0;
 	EPwm2Regs.DCBCTL.bit.EVT1FRCSYNCSEL = 0x1;
-	//Configure Digital Comparator Trip Zone Output A Event 1 (DCAEVT1) to be DCAH 1
+	//Configure Digital Comparator Trip Zone Output A Event 1 (DCAEVT1) to be
+	//DCAH 1
 	EPwm2Regs.TZDCSEL.bit.DCAEVT1 = 0x2;
-	//Configure Digital Comparator Trip Zone Output B Event 1 (DCBEVT1) to be DCAH 0
+	//Configure Digital Comparator Trip Zone Output B Event 1 (DCBEVT1) to be
+	//DCAH 0
 	EPwm2Regs.TZDCSEL.bit.DCBEVT1 = 0x1;
 	//Configure DCA to be unfiltered and asynch
 	EPwm2Regs.DCACTL.bit.EVT1SRCSEL = 0x0;
@@ -357,11 +417,11 @@ void EPWMInit(void)
 	}
 
 
-	//////////////////////////////////////////////////////////////////////////////////////////////
-	//Initialize EPWM2 to be used with AC Input Voltage (CMPSS3) (Block B on System-Block Diagram).
-	//ADCINB2 will be used as the input pin.
+	///////////////////////////////////////////////////////////////////////////
+	//Initialize EPWM3 to be used with Capacitor Voltage (CMPSS4) (Block L on
+	//System-Block Diagram). ADCIND2 will be used as the input pin.
 
-	///////////Epwm2  Values/////////////////////////////////////////////////////////////////////
+	///////////Epwm2  Values///////////////////////////////////////////////////
 	//Configure EPWM to run at SYSCLOCK/(128*14) ~ 54018Hz.
 	EPwm3Regs.TBCTL.bit.HSPCLKDIV = 0x7;
 	EPwm3Regs.TBCTL.bit.CLKDIV = 0x7;
@@ -405,13 +465,17 @@ void EPWMInit(void)
 	EPwm3Regs.DCBCTL.bit.EVT1FRCSYNCSEL = 0x1;
 	EPwm3Regs.DCBCTL.bit.EVT2SRCSEL = 0x0;
 	EPwm3Regs.DCBCTL.bit.EVT2FRCSYNCSEL = 0x1;
-	//Configure Digital Comparator Trip Zone Output A Event 1 (DCAEVT1) to be DCAH 1
+	//Configure Digital Comparator Trip Zone Output A Event 1 (DCAEVT1) to be
+	//DCAH 1
 	EPwm3Regs.TZDCSEL.bit.DCAEVT1 = 0x2;
-	//Configure Digital Comparator Trip Zone Output A Event 2 (DCAEVT1) to be DCAL 0
+	//Configure Digital Comparator Trip Zone Output A Event 2 (DCAEVT1) to be
+	//DCAL 0
 	EPwm3Regs.TZDCSEL.bit.DCAEVT2 = 0x3;
-	//Configure Digital Comparator Trip Zone Output B Event 1 (DCBEVT1) to be DCAH 0
+	//Configure Digital Comparator Trip Zone Output B Event 1 (DCBEVT1) to be
+	//DCAH 0
 	EPwm3Regs.TZDCSEL.bit.DCBEVT1 = 0x1;
-	//Configure Digital Comparator Trip Zone Output B Event 2 (DCBEVT1) to be DCAL 1
+	//Configure Digital Comparator Trip Zone Output B Event 2 (DCBEVT1) to be
+	//DCAL 1
 	EPwm3Regs.TZDCSEL.bit.DCBEVT2 = 0x4;
 	//Configure DCA to be unfiltered and asynch
 	EPwm3Regs.DCACTL.bit.EVT1SRCSEL = 0x0;

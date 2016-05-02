@@ -4,15 +4,16 @@
 //
 // TITLE:	Main System File
 //
-// DESCRIPTION:
-//
-//
-//
-//
+// DESCRIPTION: Multiple functions to control the primary system functions.
+//				Functions include the main function wherein all system
+//				initialization support functions are called and the program
+//				operates until an ISR is entered. A function used on boot
+//				to determine which input power sources are currently in use.
 //
 //###########################################################################
-// Author: Dylan Schindler
-// Release Date:
+// 	Author: Dylan Schindler
+//	Creation Date: 	Mar 23, 2016
+//	Release Date:	May 02, 2016
 //###########################################################################
 #include <stdint.h>
 #include <stdbool.h>
@@ -20,6 +21,7 @@
 #include "F2837xS_device.h"
 #include "APS_GlobalPrototypes.h"
 
+//Declarations of global variables defined within APS_GlobalDefs.h
 int32_t realtime = 0;
 char provided_date[11] = __DATE__;
 char provided_time[8] = __TIME__;
@@ -32,12 +34,17 @@ char second[2];
 JULIANTIME julianTime;
 
 
-
-void InitSysCtrl(void);
-
+//*****************************************************************************
+//NAME: main
+//
+//DESC: Main program
+//
+//DATE: 23 March 2016
+//
+//AUTHOR: Dylan Schindler
+//*****************************************************************************
 int main(void)
 {
-
     // If running from flash copy RAM only functions to RAM
 #ifdef _FLASH
 
@@ -71,20 +78,33 @@ int main(void)
     setTime();
 
 
-    //Initialize GPIO pins
+    //Initialize GPIO pins by calling GPIOInit() function defined in
+    //GPIOMod.c
     GPIOInit();
 
-    //Initialize ADC Module
+    //Initialize ADC peripherals by calling ADCInit() function defined
+    //in ADCMod.c
     ADCInit();
 
-    //Initialize Comparator Module
+    //Initialize Comparator/ ePWM peripherals by calling CMPSSInit() and
+    //EPWMInit() functions defined in CMPSSMod.c
     CMPSSInit();
     EPWMInit();
 
+    //Initialize SCI to be used for output to local station
+    //NOTE: This should be placed inside of a #define statement as this
+    //function should not be called if a demonstration is not taking place
     initsci();
+
+    //If these symbols, defined in APS_GlobalDefs.h, are set to true then
+    //either component is enabled and in use by the system
 if(AC_INPUT_VOLTAGE_COMPONENT | SOLAR_INPUT_VOLTAGE_COMPONENT)
+	//Determine which input power source by calling the systemBoot() function
+	//defined in main.c
     systemBoot();
 
+	//Initialize the ePWM to be used for the real-time clock by calling the
+	//RClock_ePWMInit() function defined in RealClockMod.c
     RClock_ePWMInit();
 
 
@@ -97,27 +117,43 @@ if(AC_INPUT_VOLTAGE_COMPONENT | SOLAR_INPUT_VOLTAGE_COMPONENT)
     APSPieInit();
 #endif
 
+    //Generate a boot-up event by calling the boot_Event() function defined in
+    //eventLog.c
     boot_Event();
 
 #ifdef _INT_TEST
     while(1)
     {
         asm ("          NOP");
-    }
+    }//END WHILE
 #endif
 
-
+//If this symbol is defined then a unit test is most likely going to be used.
+//This symbol is defined within the predefined symbols options for the build
+//configuration of the project.
 #ifdef _BASICTEST
 
 while(1)
 {
-	sciTestwComp(AC_VOLT);
-
+	sciTestwADC(AC_VOLT);
 }
 #endif
 
-}
+}//END FUNCTION
 
+//*****************************************************************************
+//NAME: systemBoot
+//
+//DESC: Function to determine which input power sources are currently in use.
+//		This function will give priority to the Solar input power source, so
+//		if adequate voltage is coming from this source than all other sources
+//		will be turned off to prevent overcharging of the capacitor and to
+//		protect the system from any uncessary voltage/current spike conditions.
+//
+//DATE: 17 April 2016
+//
+//AUTHOR: Dylan Schindler
+//*****************************************************************************
 void systemBoot(void)
 {
 	int16_t ACAdc, SolAdc;
@@ -125,11 +161,8 @@ void systemBoot(void)
 	//Check to see if AC Input or Solar Input has power
 	ACAdc = sampleADC(AC_VOLT);
 	SolAdc = sampleADC(SOL_VOLT);
-#ifdef _NO_VOLT_TEST
+
 	if((ACAdc > 100) | (SolAdc > 100))
-#else
-	if((ACAdc > CMPSS_AC_L) | (SolAdc > CMPSS_SOL_L))
-#endif
 	{
 		//If Solar has power turn off other loads and use only Solar
 		if(SolAdc > 100)
@@ -137,17 +170,17 @@ void systemBoot(void)
 			LoadSwitch((Load_Switch)SOL_LOAD, LOAD_OPEN);
 			LoadSwitch((Load_Switch)AC_LOAD, LOAD_CLOSED);
 			LoadSwitch((Load_Switch)HYDRO_LOAD, LOAD_CLOSED);
-		}
+		}//END IF
 		else
 		{
 			LoadSwitch((Load_Switch)SOL_LOAD, LOAD_CLOSED);
 			LoadSwitch((Load_Switch)AC_LOAD, LOAD_OPEN);
 			LoadSwitch((Load_Switch)HYDRO_LOAD, LOAD_CLOSED);
-		}
+		}//END ELSE
 		return;
 
-	}
+	}//END ELSE
 	else
 		return;
 
-}
+}//END FUNCTION

@@ -5,16 +5,21 @@
 //
 //	TITLE: Unit/Sub-System Test Functions
 //
-//	DESCRIPTION: Basic unit tests used to determine specific system functionality
+//	DESCRIPTION: Basic unit tests used to determine specific system
+//	functionality. Unless otherwise stated all functions output some values
+//  through the SCI (UART) pins that can be read on a connected station by
+//	using the program PuTTY set to a serial line with a baud rate of 115200
 //
-//
-//
-//
+//	NOTE: These functions are not used within the actual system unless testing
+//	of a certain peripheral is needed. These functions are not optimized and
+//	work poorly with certain system functions such as interrupts. Use only one
+//	of these functions at a time as mutliple unit tests included within the same
+//	system program will exhibit undefined behaviors.
 //
 //###########################################################################
 //	Author: Dylan Schindler
-//	Creation Date: Mar 26, 2016 
-//	Release Date:
+//	Creation Date: 	Mar 26, 2016
+//	Release Date:	May 02, 2016
 //###########################################################################
 
 #include <stdint.h>
@@ -28,16 +33,17 @@
 
 
 
-//*************************************************************************************************************************
+//*****************************************************************************
 //NAME: basicFuctionalityTest
 //
-//DESC: Initialize GPIO pins 12/13 for LEDs on Launchpad and toggle them to demonstrate system initlization and program
-// 		linking has completed correctly.
+//DESC: Initialize GPIO pins 12/13 for LEDs on Launchpad and toggle them to
+//		demonstrate system initlization and program linking has completed
+//		correctly.
 //
 //DATE: 26 March 2016
 //
 //AUTHOR: Dylan Schindler
-//*************************************************************************************************************************
+//*****************************************************************************
 void basicFuctionalityTest(void)
 {
 	int loopCount = 0;
@@ -63,7 +69,7 @@ void basicFuctionalityTest(void)
 	    return;
 }//END FUNCTION
 
-//*************************************************************************************************************************
+//*****************************************************************************
 //NAME: initsci
 //
 //DESC: Initialize Serial Communication Interface A
@@ -71,7 +77,7 @@ void basicFuctionalityTest(void)
 //DATE: 30 March 2016
 //
 //AUTHOR: Dylan Schindler
-//*************************************************************************************************************************
+//*****************************************************************************
 void initsci(void)
 {
 	//Clocks were turned on in initPeripheralClocks() function found in SysCtrl.c
@@ -125,7 +131,7 @@ void initsci(void)
 }//END FUNCTION
 
 
-//*************************************************************************************************************************
+//*******************************************************************************
 //NAME: redirOut
 //
 //DESC: Redirect STDOUT to SCI to allow use of standard functions such as putchar
@@ -133,7 +139,7 @@ void initsci(void)
 //DATE: 30 March 2016
 //
 //AUTHOR: Dylan Schindler
-//*************************************************************************************************************************
+//*******************************************************************************
 void redirOut(void)
 {
     volatile FILE *fid;
@@ -141,7 +147,8 @@ void redirOut(void)
     EALLOW;
 
     //Redirect STDOUT to SCI
-    status = add_device("scia", _SSA, SCI_open, SCI_close, SCI_read, SCI_write, SCI_lseek, SCI_unlink, SCI_rename);
+    status = add_device("scia", _SSA, SCI_open, SCI_close, SCI_read, SCI_write,
+    		SCI_lseek, SCI_unlink, SCI_rename);
     fid = fopen("scia","w");
     freopen("scia:", "w", stdout);
     setvbuf(stdout, NULL, _IONBF, 0);
@@ -149,7 +156,7 @@ void redirOut(void)
 }
 
 
-//*************************************************************************************************************************
+//******************************************************************************
 //NAME: sciTest
 //
 //DESC: Write characters to SCI
@@ -157,7 +164,7 @@ void redirOut(void)
 //DATE: 30 March 2016
 //
 //AUTHOR: Dylan Schindler
-//*************************************************************************************************************************
+//******************************************************************************
 void sciTest(void)
 {
 	unsigned char ucChar;
@@ -190,13 +197,22 @@ void sciTest(void)
 
 }
 
+//******************************************************************************
+//NAME: sciTestwADC
+//
+//DESC: Write characters to SCI where the characters are converted ADC values
+//		to represent the voltage measured on some line within the system.
+//
+//DATE: 30 March 2016
+//
+//AUTHOR: Dylan Schindler
+//******************************************************************************
 
 void sciTestwADC(ADC_Selection Select)
 {
 	unsigned char ucChar;
 	int16_t adcSample;
 	char adcValString[16];
-
 
     // For this example, only init the pins for the SCI-A port.
     EALLOW;
@@ -216,8 +232,10 @@ void sciTestwADC(ADC_Selection Select)
 
    while(1)
     {
+		asm ("      ESTOP0");
     	adcSample = sampleADC(Select);
-    	convertADC(adcSample,AC_VOLT, adcValString);
+    	sprintf(adcValString,"%d",adcSample);
+    	convertADC(adcSample,Select, adcValString);
     	printf("ADC Value = %sV", adcValString);
     	ucChar = 10;
     	putchar(ucChar);
@@ -227,6 +245,17 @@ void sciTestwADC(ADC_Selection Select)
     }//END FOR
 }//END FUNCTION
 
+//******************************************************************************
+//NAME: sciTestwComp
+//
+//DESC: Write characters to SCI where the characters are converted ADC values
+//		to represent the voltage measured on some line within the system after
+//		a CMPSS flag has been set
+//
+//DATE: 06 April 2016
+//
+//AUTHOR: Dylan Schindler
+//******************************************************************************
 void sciTestwComp(ADC_Selection Select)
 {
 	unsigned char ucChar;
@@ -277,6 +306,17 @@ void sciTestwComp(ADC_Selection Select)
     }//END FOR
 }//END FUNCTION
 
+//******************************************************************************
+//NAME: sciTestwComp_GPIO
+//
+//DESC: Write characters to SCI where the characters are converted ADC values
+//		to represent the voltage measured on some line within the system after
+//		a CMPSS flag has been set and set a GPIO pin to turn on/off a load switch
+//
+//DATE: 06 April 2016
+//
+//AUTHOR: Dylan Schindler
+//******************************************************************************
 void sciTestwComp_GPIO(ADC_Selection Select)
 {
 	unsigned char ucChar;
@@ -328,6 +368,16 @@ void sciTestwComp_GPIO(ADC_Selection Select)
     }//END FOR
 }//END FUNCTION
 
+//******************************************************************************
+//NAME: realClockTest
+//
+//DESC: Write characters to SCI where the characters are the current system date
+//		/time
+//
+//DATE: 06 April 2016
+//
+//AUTHOR: Dylan Schindler
+//******************************************************************************
 void realClockTest(void)
 {
 	unsigned char ucChar;
@@ -347,7 +397,8 @@ void realClockTest(void)
 		firstTime = 1;
 	}
 
-    printf("Current Date = %c%c%c %d, %d", julianTime.month[0],julianTime.month[1], julianTime.month[2], julianTime.day, julianTime.year);
+    printf("Current Date = %c%c%c %d, %d", julianTime.month[0],julianTime.month[1], julianTime.month[2],
+    		julianTime.day, julianTime.year);
     printf("  Current Time = %d:%d:%d", julianTime.hour, julianTime.minute, julianTime.second);
     ucChar = 10;
     putchar(ucChar);
